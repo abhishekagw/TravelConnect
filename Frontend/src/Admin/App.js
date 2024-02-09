@@ -15,7 +15,7 @@ function App() {
     <div className={darkMode ? "app dark" : "app"}>
       <div className="home">
         <Sidebar />
-        <div className="homeContainer">
+        <div className="homeContainer"    >
           <Navbar />
           <div>
 
