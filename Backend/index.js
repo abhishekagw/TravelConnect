@@ -803,10 +803,64 @@ app.post("/addfeedback", async (req, res) => {
     await feedback.save();
     res.json({ msg: "Thanks for the feedback" });
   } catch (err) {
-    console.log(err);
+    console.log('Error',err);
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
+
+//feedback Find
+
+app.get('/feedback',async (req,res)=>{
+  try{
+    const feedback=await Feedback.find();
+    if(!feedback){
+      res.send("No Data")
+    }else{
+      res.send(feedback).status(200)
+    }
+  }catch(err){
+    console.error('Error',err)
+    res.status(500).json({msg:"Server Error"})
+  }
+});
+
+//feedback Find By Id
+
+app.get('/feedback/:id',async (req,res)=>{
+  try{
+    const feedbackId=req.params.id;
+    const feedback=await Feedback.findById(feedbackId);
+    if(!feedback){
+      res.send("No Data with this ID")
+    }else{
+      res.send(feedback).status(200)
+    }
+  }catch(err){
+    console.error('Error',err)
+    res.status(500).json({msg:"Server Error"})
+  }
+});
+
+//feedback Delete
+
+app.delete('/feedback/:id',async (req,res)=>{
+  try{
+    const feedbackId=req.params.id;
+    const deletedfeedback=await Feedback.findByIdAndDelete(feedbackId);
+    if(!deletedfeedback){
+      res.send("No Data with this ID")
+    }else{
+      res.json({msg:"Deleted Succesfully",deletedfeedback})
+    }
+  }catch(err){
+    console.error('Error',err)
+    res.status(500).json({msg:"Server Error"})
+  }
+});
+
+
+//chatSchema
 
 const chatSchemaStructure = new mongoose.Schema({
   chatContent: {
@@ -859,6 +913,58 @@ app.post("/chat", async (req, res) => {
   }
 });
 
+
+//chatFind
+
+app.get('/chat',async (req,res)=>{
+  try{
+    const chat=await Chat.find();
+    if(!chat){
+      res.send("No Data")
+    }else{
+      res.send(chat).status(200)
+    }
+  }catch(err){
+    console.error(err)
+    res.status(500).json({msg:"Server Error"})
+  }
+})
+
+//chatFind By Id
+
+app.get('/chat/:id',async (req,res)=>{
+  try{
+    const chatId=req.params.id;
+    const chat=await Chat.findById(chatId);
+    if(!chat){
+      res.send("No Data with this ID")
+    }else{
+      res.send(chat).status(200)
+    }
+  }catch(err){
+    console.error(err)
+    res.status(500).json({msg:"Server Error"})
+  }
+})
+
+//Chat Delete
+
+app.delete('/chat/:id',async (req,res)=>{
+  try{
+    const chatId=req.params.id;
+    const deletedchat=await Chat.findByIdAndDelete(feedbackId);
+    if(!deletedchat){
+      res.send("No Data with this ID")
+    }else{
+      res.json({msg:"Deleted Succesfully",deletedchat})
+    }
+  }catch(err){
+    console.error('Error',err)
+    res.status(500).json({msg:"Server Error"})
+  }
+});
+
+
 //hashtagSchema
 
 const hashtagSchemaStructure = new mongoose.Schema({
@@ -883,6 +989,56 @@ app.post("/addhashtag", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+//HashTag Find
+
+app.get('/hashtag',async (req,res)=>{
+  try{
+    const hashtag=await HashTag.find();
+    if(!hashtag){
+      res.send("No Data")
+    }else{
+      res.send(hashtag).status(200)
+    }
+  }catch(err){
+    console.error(err)
+    res.status(500).json({msg:"Server Error"})
+  }
+})
+
+//HashTag Find By Id
+
+app.get('/hashtag',async (req,res)=>{
+  try{
+    const hashtagId=req.params.id;
+    const hashtag=await HashTag.find(hashtagId);
+    if(!hashtag){
+      res.send("No Data with this ID")
+    }else{
+      res.send(hashtag).status(200)
+    }
+  }catch(err){
+    console.error(err)
+    res.status(500).json({msg:"Server Error"})
+  }
+})
+
+//Hastag Delete
+
+app.delete('/hashtag/:id',async (req,res)=>{
+  try{
+    const hashtagId=req.params.id;
+    const deletedhashtag=await HashTag.findByIdAndDelete(hashtagId);
+    if(!deletedhashtag){
+      res.send("No Data with this ID")
+    }else{
+      res.json({msg:"Deleted Succesfully",deletedhashtag})
+    }
+  }catch(err){
+    console.error('Error',err)
+    res.status(500).json({msg:"Server Error"})
   }
 });
 
@@ -924,5 +1080,55 @@ app.post("/followlist", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+//Follower Find
+
+app.get('/follower',async (req,res)=>{
+  try{
+    const follower=await Followlist.find();
+    if(!follower){
+      res.send("No Data")
+    }else{
+      res.send(follower).status(200)
+    }
+  }catch(err){
+    console.error(err)
+    res.status(500).json({msg:"Server Error"})
+  }
+});
+
+//Follower Find By Id
+
+app.get('/follower/:id',async (req,res)=>{
+  try{
+    const followerId=req.params.id;
+    const follower=await Followlist.findById(followerId);
+    if(!follower){
+      res.send("No Data with this ID")
+    }else{
+      res.send(follower).status(200)
+    }
+  }catch(err){
+    console.error(err)
+    res.status(500).json({msg:"Server Error"})
+  }
+});
+
+//Follower Delete
+
+app.delete('/follower/:id',async (req,res)=>{
+  try{
+    const followerId=req.params.id;
+    const deletedfollower=await Followlist.findByIdAndDelete(followerId);
+    if(!deletedfollower){
+      res.send("No Data with this ID")
+    }else{
+      res.json({msg:"Deleted Succesfully",deletedfollower})
+    }
+  }catch(err){
+    console.error('Error',err)
+    res.status(500).json({msg:"Server Error"})
   }
 });

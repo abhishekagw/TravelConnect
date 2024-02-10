@@ -5,6 +5,8 @@ import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import Add from "./components/Add";
 import { useState } from "react";
+import Comment from "./Pages/Comment";
+import { Route, Routes } from "react-router-dom";
 
 
 function App() {
@@ -23,7 +25,15 @@ function App() {
      <Navbar/>
      <Stack direction="row" spacing={2} justifyContent="space-between">
      <Sidebar setMode={setMode} mode={mode}/>
-     <Feed/>
+
+
+      <Box flex={4} p={2}>
+     <Routes>
+
+              <Route path="/" element={<Feed />} />
+            </Routes>
+      </Box>
+
      <Rightbar/>
      </Stack>
      <Add/>

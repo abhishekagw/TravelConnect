@@ -1,8 +1,10 @@
 import { Favorite, FavoriteBorder, MoreVert, Share } from '@mui/icons-material'
 import { Avatar, Card, CardActions, CardContent, CardHeader, CardMedia, Checkbox, IconButton, Typography } from '@mui/material'
-import React from 'react'
+import React, { useState } from 'react'
+import Comment from '../Pages/Comment'
 
 const Post = () => {
+  const [check,setCheck] = useState(true)
   return (
      <Card sx={{margin:5}}>
     <CardHeader
@@ -42,6 +44,9 @@ const Post = () => {
       </IconButton>
       
     </CardActions>
+    {
+      check &&<Comment/>
+    }
   </Card>
   )
 }
