@@ -6,7 +6,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React from "react";
+import axios from "axios";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 const Signup = () => {
@@ -42,9 +43,39 @@ const Signup = () => {
     fontSize: "16px",
     fontWeight: "normal",
   };
+
+  const [username, setUserName] = useState("");
+  const [fullname, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const data = {
+      userName: username,
+      userFullName: fullname,
+      userEmail: email,
+      userPassword: password,
+    };
+
+    axios.post("http://localhost:5000/user", data).then((res) => {
+      console.log(res.data);
+      setUserName('');
+      setFullName('');
+      setEmail('');
+      setPassword('');
+    });
+  };
+
   return (
     <Grid>
-      <Paper elevation={2} sx={paperStyle} variant="outlined">
+      <Paper
+        elevation={2}
+        sx={paperStyle}
+        variant="outlined"
+        component={"form"}
+        onSubmit={handleSubmit}
+      >
         <Grid align="center" marginBottom={"50px"}>
           <Avatar />
           <h2 style={mainTextStyle}>TravelConnect</h2>
@@ -53,23 +84,53 @@ const Signup = () => {
           </Typography>
         </Grid>
         <Grid align="center">
-          <form>
-            <TextField label="Email" fullWidth sx={textFieldStyle} />
-            <TextField label="Full Name" fullWidth sx={textFieldStyle} />
-            <TextField label="Username" fullWidth sx={textFieldStyle} />
-            <TextField label="Password" fullWidth sx={textFieldStyle} />
+          <TextField
+            label="Email"
+            fullWidth
+            sx={textFieldStyle}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+            value={email}
+          />
+          <TextField
+            label="Full Name"
+            fullWidth
+            sx={textFieldStyle}
+            onChange={(e) => {
+              setFullName(e.target.value);
+            }}
+            value={fullname}
+          />
+          <TextField
+            label="Username"
+            fullWidth
+            sx={textFieldStyle}
+            onChange={(e) => {
+              setUserName(e.target.value);
+            }}
+            value={username}
+          />
+          <TextField
+            label="Password"
+            fullWidth
+            sx={textFieldStyle}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+            value={password}
+          />
 
-            <Grid sx={{ margin: 1 }}>
-              <Typography variant="h7" color={"grey"}>
-                By signing up, you agree to our Terms , Privacy Policy and
-                Cookies Policy .
-              </Typography>
-            </Grid>
-            <br />
-            <Button fullWidth variant="contained" sx={{ marginBottom: "10px" }}>
-              <span style={{ fontWeight: "bold" }}> Sign up</span>
-            </Button>
-          </form>
+          <Grid sx={{ margin: 1 }}>
+            <Typography variant="h7" color={"grey"}>
+              By signing up, you agree to our Terms , Privacy Policy and Cookies
+              Policy .
+            </Typography>
+          </Grid>
+          <br />
+          <Button type="submit" xfullWidth variant="contained" sx={{ marginBottom: "10px" }}>
+            <span style={{ fontWeight: "bold" }}> Sign up</span>
+          </Button>
         </Grid>
       </Paper>
       <Paper elevation={3} sx={secPaper} variant="outlined">

@@ -19,7 +19,23 @@ import {
   Typography,
   styled,
 } from "@mui/material";
+import axios from "axios";
 import React, { useState } from "react";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+
+
+
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
 
 const StyledModal = styled(Modal)({
   display: "flex",
@@ -35,7 +51,21 @@ const UserBox = styled(Box)({
 
 const Add = () => {
   const [open, setOpen] = useState(false);
-  const [caption,setCaption]= useState("")
+  const [caption, setCaption] = useState("");
+  const [photo, setPhoto] = useState([]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const frm = new FormData()
+    frm.append("postCaption",caption)
+    frm.append("postFile",photo)
+    frm.append("userId",'65cf096e4d3399b3376d6b84')
+
+    
+    axios.post("http://localhost:5000/addpost", frm).then((res) => {
+      console.log(res.data);
+    });
+  };
 
   return (
     <>
@@ -57,6 +87,8 @@ const Add = () => {
         onClose={(e) => setOpen(false)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
+        component={"form"}
+        onSubmit={handleSubmit}
       >
         <Box
           width={1000}
@@ -84,22 +116,31 @@ const Add = () => {
             rows={5}
             placeholder="What's On Your Mind"
             variant="standard"
-            onChange={(e)=>setCaption(e.target.value)}
-
+            onChange={(e) => setCaption(e.target.value)}
           />
-           {caption}
+
           <Stack direction="row" gap={1} mt={2} mb={3}>
-            <EmojiEmotions color="primary" />
+          <Button
+      component="label"
+      role={undefined}
+      variant="contained"
+      tabIndex={-1}
+      startIcon={<CloudUploadIcon />}
+    >
+      Upload file
+      <VisuallyHiddenInput type="file" onChange={(event) => setPhoto(event.target.files[0])} />
+    </Button>
+            {/* <EmojiEmotions color="primary" />
             <Image color="secondary" />
             <VideoCameraBack color="success" />
-            <PersonAdd color="error" />
+            <PersonAdd color="error" /> */}
           </Stack>
           <ButtonGroup
             fullWidth
             variant="contained"
             aria-label="outlined primary button group"
           >
-            <Button>Post</Button>
+            <Button type="submit">Post</Button>
             <Button sx={{ width: "100px" }}>
               <DateRange />
             </Button>

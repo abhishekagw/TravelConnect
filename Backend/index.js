@@ -5,11 +5,30 @@ const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const port = 5000;
+const multer = require("multer");
+
+
+
+
+const PATH = "./public/images";
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: PATH,
+    filename: function (req, file, cb) {
+      let origialname = file.originalname;
+      let ext = origialname.split(".").pop();
+      let filename = origialname.split(".").slice(0, -1).join(".");
+      cb(null, filename + "." + ext);
+    },
+  }),
+});
 
 //use express static folder
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("./public"));
+
 
 app.listen(port, () => {
   try {
@@ -129,7 +148,6 @@ app.post("/district", async (req, res) => {
     let district = await District.findOne({ distName });
     if (district) {
       return res
-        .status(400)
         .json({ errors: [{ msg: "District already exists" }] });
     }
 
@@ -140,7 +158,7 @@ app.post("/district", async (req, res) => {
     res.json({ message: "District Added successfully" });
   } catch (err) {
     console.log(err.message);
-    res.status(500).json({ msg: "Server error" });
+    res.json({ msg:   "Server error" });
   }
 });
 
@@ -197,8 +215,8 @@ app.delete("/district/:id", async (req, res) => {
 //PlaceSchema
 const placeSchemaStructure = new mongoose.Schema({
   placeDistName: {
-    type: String,
-    reuqired: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "districtSchema",
   },
   placeName: {
     type: String,
@@ -233,7 +251,7 @@ app.post("/place", async (req, res) => {
 
 app.get("/place", async (req, res) => {
   try {
-    const place = await Place.find();
+    const place = await Place.find().populate("placeDistName");
     if (!place) {
       res.send({ msg: "No Data" });
     } else {
@@ -286,9 +304,12 @@ const userSchemaStructre = new mongoose.Schema({
     type: String,
     required: true,
   },
-  userContact: {
+  userFullName: {
     type: String,
     required: true,
+  },
+  userContact: {
+    type: String,
   },
   userEmail: {
     type: String,
@@ -298,21 +319,15 @@ const userSchemaStructre = new mongoose.Schema({
     type: String,
     required: true,
   },
-  userEmail: {
-    type: String,
-    required: true,
-  },
   placeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "placeSchema",
   },
   userPhoto: {
     type: String,
-    required: true,
   },
   userType: {
     type: String,
-    required: true,
   },
   userGender: {
     type: String,
@@ -331,13 +346,9 @@ app.post("/user", async (req, res) => {
   try {
     const {
       userName,
-      userContact,
+      userFullName,
       userEmail,
       userPassword,
-      userPhoto,
-      placeId,
-      userType,
-      userGender,
     } = req.body;
     let user = await User.findOne({ $or: [{ userName }, { userEmail }] });
     if (user) {
@@ -347,13 +358,9 @@ app.post("/user", async (req, res) => {
     }
     user = new User({
       userName,
-      userContact,
+      userFullName,
       userEmail,
       userPassword,
-      userPhoto,
-      placeId,
-      userType,
-      userGender,
     });
     await user.save();
     res.json({ msg: "User Added" });
@@ -444,9 +451,18 @@ const Post = mongoose.model("postschema", postSchemaStructure);
 
 //AddPost
 
-app.post("/addpost", async (req, res) => {
+app.post("/addpost",
+upload.fields([
+  { name: "postFile", maxCount: 1 },
+]),
+
+async (req, res) => {
   try {
-    const { postCaption, postFile, userId } = req.body;
+    var fileValue = JSON.parse(JSON.stringify(req.files));
+    var postFile = `http://127.0.0.1:${port}/images/${fileValue.postFile[0].filename}`;
+  
+    const { postCaption, userId } = req.body;
+    console.log(req.body);
     const post = new Post({
       postCaption,
       postFile,
@@ -674,11 +690,11 @@ const reportSchemaStructure = new mongoose.Schema({
   },
   reportReply: {
     type: String,
-    reuqired: true,
+    
   },
   reportStatus: {
     type: String,
-    required: true,
+    
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -693,13 +709,11 @@ const Report = mongoose.model("reportSchema", reportSchemaStructure);
 
 app.post("/addreport", async (req, res) => {
   try {
-    const { reportTitle, reportDetails, reportReply, reportStatus, userId } =
+    const { reportTitle, reportDetails,userId } =
       req.body;
     const report = new Report({
       reportTitle,
       reportDetails,
-      reportReply,
-      reportStatus,
       userId,
     });
 

@@ -2,9 +2,10 @@ import { Favorite, FavoriteBorder, MoreVert, Share } from '@mui/icons-material'
 import { Avatar, Card, CardActions, CardContent, CardHeader, CardMedia, Checkbox, IconButton, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import Comment from '../Pages/Comment'
+import CommentIcon from '@mui/icons-material/Comment';
 
 const Post = () => {
-  const [check,setCheck] = useState(true)
+  const [check,setCheck] = useState(false)
   return (
      <Card sx={{margin:5}}>
     <CardHeader
@@ -37,7 +38,10 @@ const Post = () => {
     <CardActions disableSpacing>
       <IconButton aria-label="add to favorites">
       <Checkbox icon={<FavoriteBorder />} checkedIcon={<Favorite sx={{color:"red"}} />} />
-        
+      </IconButton>
+      <IconButton onClick={()=>setCheck(prevCheck => !prevCheck)}>
+
+        <CommentIcon/>
       </IconButton>
       <IconButton aria-label="share">
         <Share />

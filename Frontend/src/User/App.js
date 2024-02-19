@@ -5,7 +5,6 @@ import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import Add from "./components/Add";
 import { useState } from "react";
-import Comment from "./Pages/Comment";
 import { Route, Routes } from "react-router-dom";
 
 

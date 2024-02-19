@@ -28,6 +28,7 @@ const District = () => {
     axios.post("http://localhost:5000/district", data).then((response) => {
       console.log(response.data);
       fetchDistrict();
+      setDistrictName('')
 
     });
   };
@@ -77,6 +78,7 @@ const District = () => {
               fullWidth
               label="District Name"
               onChange={(event) => setDistrictName(event.target.value)}
+              value={districtName}
             />
           </Grid>
 

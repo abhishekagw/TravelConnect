@@ -1,8 +1,12 @@
 import {
   Avatar,
   Button,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -19,32 +23,40 @@ const Place = () => {
   const [place, setPlace] = useState("");
   const [district, setDistrict] = useState("");
 
-  const[placeData,setPlaceData]=useState([]);
+  const [placeData, setPlaceData] = useState([]);
+  const [districtData, setDistrictData] = useState([]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data={
-      placeDistName:district,
-      placeName:place,
-
+    const data = {
+      placeDistName: district,
+      placeName: place,
     };
 
-    axios.post('http://localhost:5000/place',data).then((res)=>{
-      console.log(res.data)
+    axios.post("http://localhost:5000/place", data).then((res) => {
+      console.log(res.data);
       fetchPlace();
-    })
+    });
   };
 
-  const fetchPlace=()=>{
-    axios.get('http://localhost:5000/place').then((res)=>{
-      console.log(res.data)
+  const fetchPlace = () => {
+    axios.get("http://localhost:5000/place").then((res) => {
+      console.log(res.data);
       setPlaceData(res.data);
-    })
-  }
+    });
+  };
 
-  useEffect(()=>{
+  const fetchDistrict = () => {
+    axios.get("http://localhost:5000/district").then((res) => {
+      console.log(res.data);
+      setDistrictData(res.data);
+    });
+  };
+
+  useEffect(() => {
     fetchPlace();
-  },[])
+    fetchDistrict();
+  }, []);
 
   const paperStyle = {
     padding: "30px 20px",
@@ -77,11 +89,24 @@ const Place = () => {
         </Grid>
         <Grid sx={textStyle}>
           <Grid sx={textStyle}>
-            <TextField
-              fullWidth
-              label="District Name"
-              onChange={(event) => setDistrict(event.target.value)}
-            />
+            <FormControl fullWidth>
+              <InputLabel id="demo-simple-select-label">District</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={district}
+                label="District"
+                onChange={(event) => setDistrict(event.target.value)}
+              >
+                {
+                  districtData.map((district, key) => (
+                    <MenuItem key={key} value={district._id}>{district.distName}</MenuItem>
+
+                  ))
+                }
+               
+              </Select>
+            </FormControl>
           </Grid>
           <Grid sx={textStyle}>
             <TextField
@@ -98,8 +123,11 @@ const Place = () => {
           </Grid>
         </Grid>
       </Paper>
-      <TableContainer component={Paper} sx={{display:'flex',justifyContent:'center'}}>
-        <Table sx={{width:600}} aria-label="simple table">
+      <TableContainer
+        component={Paper}
+        sx={{ display: "flex", justifyContent: "center" }}
+      >
+        <Table sx={{ width: 600 }} aria-label="simple table">
           <TableHead>
             <TableRow>
               <TableCell>SlNo</TableCell>
@@ -114,7 +142,7 @@ const Place = () => {
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell align="right">{key + 1}</TableCell>
-                <TableCell align="right">{places.placeDistName}</TableCell>
+                <TableCell align="right">{places.placeDistName.distName}</TableCell>
                 <TableCell align="right">{places.placeName}</TableCell>
                 <TableCell align="right">{""}</TableCell>
               </TableRow>
