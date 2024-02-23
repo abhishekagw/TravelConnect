@@ -1,4 +1,5 @@
 import {
+  Alert,
   Avatar,
   Button,
   Divider,
@@ -8,10 +9,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import axios from "axios";
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate()
   const paperStyle = {
     padding: "30px 20px",
     width: 300,
@@ -24,6 +28,28 @@ const Login = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    const data = {
+      email: user,
+      password: password,
+    };
+
+    axios.post("http://localhost:5000/login", data).then((response) => {
+      console.log(response.data);
+      const {id, login} = response.data
+      if(login === 'Admin'){
+        sessionStorage.setItem('aid',id)
+        navigate("../../Admin")
+
+      }
+      else if(login === 'User'){
+        sessionStorage.setItem('uid',id)
+        navigate("../../User")
+      }
+      else{
+        
+      }
+    });
+
     setUser("");
     setPassword("");
   };

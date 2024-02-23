@@ -59,12 +59,16 @@ const Add = () => {
     const frm = new FormData()
     frm.append("postCaption",caption)
     frm.append("postFile",photo)
-    frm.append("userId",'65cf096e4d3399b3376d6b84')
+    frm.append("userId",sessionStorage.getItem('uid'))
 
     
     axios.post("http://localhost:5000/addpost", frm).then((res) => {
       console.log(res.data);
     });
+    setTimeout(() => {
+      setOpen(false);
+    }, 1000);
+    
   };
 
   return (
