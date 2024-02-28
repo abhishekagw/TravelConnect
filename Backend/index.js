@@ -467,14 +467,21 @@ app.post(
 );
 
 //Post Find
-
-app.get("/posts", async (req, res) => {
+app.get("/posts/:uid", async (req, res) => {
   try {
-    const posts = await Post.find();
-    if (!posts) {
-      res.send({ msg: "No Data" });
+    const uid = req.params.uid;
+    const posts = await Post.find().populate("userId");
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({ msg: "No Data" });
     } else {
-      res.send(posts).status(200);
+      const postFinaldata = await Promise.all(posts.map(async (post) => {
+        post = post.toJSON();
+        const like = await Like.findOne({ userId: uid, postId: post._id });
+        post.like = !!like; // Convert like to boolean
+        return post;
+      }));
+      console.log(postFinaldata);
+      res.status(200).json(postFinaldata);
     }
   } catch (err) {
     console.error("Error", err);
@@ -505,6 +512,7 @@ app.delete("/posts/:id", async (req, res) => {
   try {
     const postId = req.params.id;
     const deletedPost = await Post.findByIdAndDelete(postId);
+    await Comment.deleteMany({ postId });
     if (!deletedPost) {
       return res.status(404).json({ message: "Post not found" });
     } else {
@@ -564,6 +572,7 @@ app.post("/addcomment", async (req, res) => {
 app.get("/comments", async (req, res) => {
   try {
     const comments = await Comment.find();
+    console.log(comments);
     if (!comments) {
       res.send({ msg: "no data" });
     } else {
@@ -577,20 +586,38 @@ app.get("/comments", async (req, res) => {
 
 //commentFind by ID
 
+// app.get("/comments/:id", async (req, res) => {
+//   try {
+//     const commentId = req.params.id;
+//     const comments = await Comment.findById(commentId);
+//     if (!comments) {
+//       res.send({ msg: "no data with this ID" });
+//     } else {
+//       res.send(comments).status(200);
+//     }
+//   } catch (err) {
+//     console.error("Error", err);
+//     res.status(500).json({ msg: "Server Error" });
+//   }
+// });
+
+//commentFind by Post ID
+
 app.get("/comments/:id", async (req, res) => {
   try {
-    const commentId = req.params.id;
-    const comments = await Comment.findById(commentId);
+    const postId = req.params.id;
+    const comments = await Comment.find({ postId: postId }).populate("userId");
     if (!comments) {
-      res.send({ msg: "no data with this ID" });
+      res.send({ msg: "no Comment for this Post" });
     } else {
-      res.send(comments).status(200);
+      res.send({ comments }).status(200);
     }
   } catch (err) {
     console.error("Error", err);
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
 //Comment Delete
 
 app.delete("/comments/:id", async (req, res) => {
@@ -652,10 +679,14 @@ app.post("/like", async (req, res) => {
 
 //Like Delete
 
-app.delete("/like/:id", async (req, res) => {
+app.delete("/like/:id/:postid", async (req, res) => {
   try {
-    const likeId = req.params.id;
-    const deletedLike = await Like.findByIdAndDelete(likeId);
+    const userId = req.params.id;
+    const postId = req.params.postid;
+    const deletedLike = await Like.deleteOne({
+      userId: userId,
+      postId: postId,
+    });
     if (!deletedLike) {
       return res.status(404).json({ message: "No Like" });
     } else {
@@ -666,6 +697,19 @@ app.delete("/like/:id", async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
+//Like Status
+
+app.get('/LikeStatus/:uid/:pid',async (req,res)=>{
+  try{
+    const userId=req.params.uid;
+    const postId=req.params.pid;
+    const likeStatus=await Like.findOne({userId,postId}) ? true:false
+    res.json(likeStatus);
+  }catch(err){
+    console.error('Error',err)
+  }
+})
 
 //Report Schema
 
@@ -1127,21 +1171,27 @@ app.delete("/follower/:id", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ userEmail:email,userPassword:password });
-    const admin = await Admin.findOne({ adminEmail:email,adminPassword:password }); 
+    const user = await User.findOne({
+      userEmail: email,
+      userPassword: password,
+    });
+    const admin = await Admin.findOne({
+      adminEmail: email,
+      adminPassword: password,
+    });
     if (user) {
       res.send({
-        id:user._id,
-        login:'User'
-      })
+        id: user._id,
+        login: "User",
+      });
     }
-    if(admin){
+    if (admin) {
       res.send({
-        id:admin._id,
-        login:'Admin'
-      })
+        id: admin._id,
+        login: "Admin",
+      });
     }
   } catch (err) {
-    console.error("Error",err)
+    console.error("Error", err);
   }
 });
