@@ -6,6 +6,7 @@ import Report from "./User/Pages/Report";
 import Feedback from "./User/Pages/Feedback";
 import Chat from "./User/Pages/Chat";
 import FollowList from "./User/Pages/FollowList";
+import Editprofile from "./User/Pages/Editprofile";
 
 
 

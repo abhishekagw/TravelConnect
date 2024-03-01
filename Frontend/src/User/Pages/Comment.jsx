@@ -79,6 +79,7 @@ const Comment = (props) => {
         console.log(res.data);
         setCommentData(res.data.comments);
         setComments("");
+        props.countData();
       })
       .catch((err) => {
         console.log(err);

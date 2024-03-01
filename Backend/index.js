@@ -410,6 +410,23 @@ app.delete("/user/:id", async (req, res) => {
   }
 });
 
+
+app.put('/User/:id', async (req, res) => {
+  const id = req.params.id
+  try {
+     const { name, username,bio,contact,gender } = req.body
+     const updatedAdmin = await Admin.findByIdAndUpdate(
+        id,
+        { name, username,bio,contact,gender},
+        { new: true }
+     )
+     res.json(updatedAdmin)
+  } catch (err) {
+     console.error(err.message)
+     res.status(500).send('server error')
+  }
+})
+
 //PostsSchema
 
 const postSchemaStructure = new mongoose.Schema({
@@ -474,12 +491,14 @@ app.get("/posts/:uid", async (req, res) => {
     if (!posts || posts.length === 0) {
       return res.status(404).json({ msg: "No Data" });
     } else {
-      const postFinaldata = await Promise.all(posts.map(async (post) => {
-        post = post.toJSON();
-        const like = await Like.findOne({ userId: uid, postId: post._id });
-        post.like = !!like; // Convert like to boolean
-        return post;
-      }));
+      const postFinaldata = await Promise.all(
+        posts.map(async (post) => {
+          post = post.toJSON();
+          const like = await Like.findOne({ userId: uid, postId: post._id });
+          post.like = !!like; // Convert like to boolean
+          return post;
+        })
+      );
       console.log(postFinaldata);
       res.status(200).json(postFinaldata);
     }
@@ -635,6 +654,20 @@ app.delete("/comments/:id", async (req, res) => {
   }
 });
 
+
+//Comment Count
+
+app.get("/commentcount/:pid", async (req, res) => {
+  try {
+    const postId = req.params.pid;
+    const commentCount = await Comment.countDocuments({ postId });
+    res.send({commentCount})
+  } catch (err) {
+    console.error('Error',err)
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
 //likeSchema
 
 const likeSchemaStructure = new mongoose.Schema({
@@ -700,16 +733,26 @@ app.delete("/like/:id/:postid", async (req, res) => {
 
 //Like Status
 
-app.get('/LikeStatus/:uid/:pid',async (req,res)=>{
-  try{
-    const userId=req.params.uid;
-    const postId=req.params.pid;
-    const likeStatus=await Like.findOne({userId,postId}) ? true:false
+app.get("/LikeStatus/:uid/:pid", async (req, res) => {
+  try {
+    const userId = req.params.uid;
+    const postId = req.params.pid;
+    const likeStatus = (await Like.findOne({ userId, postId })) ? true : false;
     res.json(likeStatus);
-  }catch(err){
-    console.error('Error',err)
+  } catch (err) {
+    console.error("Error", err);
   }
-})
+});
+
+//Like Count
+
+app.get("/likecount/:pid", async (req, res) => {
+  try {
+    const postId = req.params.pid;
+    const likeCount = await Like.countDocuments({ postId });
+    res.send({likeCount})
+  } catch (err) {}
+});
 
 //Report Schema
 

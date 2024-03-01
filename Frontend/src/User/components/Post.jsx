@@ -8,7 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardMedia,
-  Checkbox,
   IconButton,
   Menu,
   MenuItem,
@@ -28,6 +27,8 @@ const Post = ({ data, fetchPost }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const [likes, setLikes] = useState([]);
+  const [comments, setComments] = useState([]);
   const [liked, setLiked] = useState(false);
   const [check, setCheck] = useState(false);
   const uid = sessionStorage.getItem("uid");
@@ -49,6 +50,16 @@ const Post = ({ data, fetchPost }) => {
       });
   };
 
+  const countData = () => {
+    axios.get("http://localhost:5000/likeCount/" + post).then((res) => {
+      setLikes(res.data.likeCount);
+    });
+
+    axios.get("http://localhost:5000/commentcount/" + post).then((res) => {
+      setComments(res.data.commentCount);
+    });
+  };
+
   const handleLike = () => {
     const datas = {
       postId: post,
@@ -57,6 +68,7 @@ const Post = ({ data, fetchPost }) => {
     axios.post("http://localhost:5000/like", datas).then((res) => {
       console.log(res.data);
       setLiked(true);
+      countData();
     });
   };
 
@@ -66,6 +78,7 @@ const Post = ({ data, fetchPost }) => {
       .then((res) => {
         console.log(res.data);
         setLiked(false);
+        countData();
       })
       .catch((err) => {
         console.log(err);
@@ -85,6 +98,7 @@ const Post = ({ data, fetchPost }) => {
 
   useEffect(() => {
     LikeStatus();
+    countData();
   }, []);
 
   return (
@@ -155,17 +169,26 @@ const Post = ({ data, fetchPost }) => {
           }}
         >
           {liked ? <FavoriteOutlinedIcon color="error" /> : <FavoriteBorder />}
-
+          {likes > 0 ? (
+            <span style={{ fontSize: "15px", paddingLeft: "5px" }}>
+              {likes}
+            </span>
+          ) : null}
           {/* <Favorite /> */}
         </IconButton>
         <IconButton onClick={() => setCheck((prevCheck) => !prevCheck)}>
           <CommentIcon />
+          {comments > 0 ? (
+            <span style={{ fontSize: "15px", paddingLeft: "5px" }}>
+              {comments}
+            </span>
+          ) : null}
         </IconButton>
         <IconButton aria-label="share">
           <Share />
         </IconButton>
       </CardActions>
-      {check && <Comment post={post} />}
+      {check && <Comment post={post}  countData={countData} />}
     </Card>
   );
 };

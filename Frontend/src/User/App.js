@@ -6,37 +6,38 @@ import Navbar from "./components/Navbar";
 import Add from "./components/Add";
 import { useState } from "react";
 import { Route, Routes } from "react-router-dom";
-
+import Editprofile from "./Pages/Editprofile";
+import Changepassword from "./Pages/Changepassword";
+import MyProfile from "./Pages/MyProfile";
 
 function App() {
+  const [mode, setMode] = useState("light");
 
-  const[mode,setMode]=useState("light")
-
-  const darkTheme=createTheme({
-    palette:{
-      mode:mode
-    }
-  })
+  const darkTheme = createTheme({
+    palette: {
+      mode: mode,
+    },
+  });
   return (
     <ThemeProvider theme={darkTheme}>
+      <Box bgcolor={"background.default"} color={"text.primary"}>
+        <Navbar />
+        <Stack direction="row" spacing={2} justifyContent="space-between">
+          <Sidebar setMode={setMode} mode={mode} />
 
-    <Box bgcolor={"background.default"} color={"text.primary"}>
-     <Navbar/>
-     <Stack direction="row" spacing={2} justifyContent="space-between">
-     <Sidebar setMode={setMode} mode={mode}/>
-
-
-      <Box flex={4} p={2}>
-     <Routes>
-
+          <Box flex={4} p={2}>
+            <Routes>
               <Route path="/" element={<Feed />} />
+              <Route path="/editprofile" element={<Editprofile />} />
+              <Route path="/changepassword" element={<Changepassword />} />
+              <Route path="/myprofile" element={<MyProfile/>} />
             </Routes>
-      </Box>
+          </Box>
 
-     <Rightbar/>
-     </Stack>
-     <Add/>
-    </Box>
+          <Rightbar />
+        </Stack>
+        <Add />
+      </Box>
     </ThemeProvider>
   );
 }
