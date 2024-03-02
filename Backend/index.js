@@ -410,22 +410,51 @@ app.delete("/user/:id", async (req, res) => {
   }
 });
 
+//User Update
 
-app.put('/User/:id', async (req, res) => {
-  const id = req.params.id
+app.put("/User/:id", async (req, res) => {
+  const id = req.params.id;
   try {
-     const { name, username,bio,contact,gender } = req.body
-     const updatedAdmin = await Admin.findByIdAndUpdate(
-        id,
-        { name, username,bio,contact,gender},
-        { new: true }
-     )
-     res.json(updatedAdmin)
+    const { userName, userFullName, userContact, userGender } = req.body;
+    const updatedAdmin = await User.findByIdAndUpdate(
+      id,
+      { userName, userFullName, userContact, userGender },
+      { new: true }
+    );
+    res.json(updatedAdmin);
   } catch (err) {
-     console.error(err.message)
-     res.status(500).send('server error')
+    console.error(err.message);
+    res.status(500).send("server error");
   }
-})
+});
+
+//User Change Password
+
+app.put("/changepassword/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const { userPassword, userNewPassword } = req.body;
+    const user = await User.findById(id);
+    if (user) {
+      const oldPass = user.userPassword;
+      if (oldPass == userPassword) {
+        const updatedPass = await User.findByIdAndUpdate(
+          id,
+          { userPassword: userNewPassword },
+          { new: true }
+        );
+        res.send({msg:'Password Changed',updatedPass});
+      } else {
+        res.send("Old Password is Not Matching");
+      }
+    } else {
+      res.send("User Not Found");
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("server error");
+  }
+});
 
 //PostsSchema
 
@@ -654,16 +683,15 @@ app.delete("/comments/:id", async (req, res) => {
   }
 });
 
-
 //Comment Count
 
 app.get("/commentcount/:pid", async (req, res) => {
   try {
     const postId = req.params.pid;
     const commentCount = await Comment.countDocuments({ postId });
-    res.send({commentCount})
+    res.send({ commentCount });
   } catch (err) {
-    console.error('Error',err)
+    console.error("Error", err);
     res.status(500).json({ msg: "Server Error" });
   }
 });
@@ -750,7 +778,7 @@ app.get("/likecount/:pid", async (req, res) => {
   try {
     const postId = req.params.pid;
     const likeCount = await Like.countDocuments({ postId });
-    res.send({likeCount})
+    res.send({ likeCount });
   } catch (err) {}
 });
 

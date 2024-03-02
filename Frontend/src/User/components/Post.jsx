@@ -158,7 +158,7 @@ const Post = ({ data, fetchPost }) => {
       />
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-          {data.postCaption}
+       <b style={{color:'black'}}> {data.userId.userName} </b>  {data.postCaption}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
