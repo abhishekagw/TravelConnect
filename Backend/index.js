@@ -485,10 +485,37 @@ postSchemaStructure.pre("save", function (next) {
 
 const Post = mongoose.model("postschema", postSchemaStructure);
 
-//AddPost
+//Add Image Post
 
 app.post(
   "/addpost",
+  upload.fields([{ name: "postFile", maxCount: 1 }]),
+
+  async (req, res) => {
+    try {
+      var fileValue = JSON.parse(JSON.stringify(req.files));
+      var postFile = `http://127.0.0.1:${port}/images/${fileValue.postFile[0].filename}`;
+
+      const { postCaption, userId } = req.body;
+      console.log(req.body);
+      const post = new Post({
+        postCaption,
+        postFile,
+        userId,
+      });
+      await post.save();
+      res.json("Post Added");
+    } catch (err) {
+      console.log(err.msg);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  }
+);
+
+//Add Video
+
+app.post(
+  "/addp",
   upload.fields([{ name: "postFile", maxCount: 1 }]),
 
   async (req, res) => {

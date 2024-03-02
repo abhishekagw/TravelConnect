@@ -21,19 +21,17 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import React, { useState } from "react";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
-
-
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
   height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
+  overflow: "hidden",
+  position: "absolute",
   bottom: 0,
   left: 0,
-  whiteSpace: 'nowrap',
+  whiteSpace: "nowrap",
   width: 1,
 });
 
@@ -56,19 +54,28 @@ const Add = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const frm = new FormData()
-    frm.append("postCaption",caption)
-    frm.append("postFile",photo)
-    frm.append("userId",sessionStorage.getItem('uid'))
+    const fileType = photo.type.split("/")[0]; // This will give you the general type (image or video)
 
-    
+    if(fileType=='video'){
+      const frm = new FormData();
+      frm.append("postCaption", caption);
+      frm.append("videoFIle", photo);
+      frm.append("userId", sessionStorage.getItem("uid"));
+    }else if(fileType=='image'){
+      const frm = new FormData();
+      frm.append("postCaption", caption);
+      frm.append("postFile", photo);
+      frm.append("userId", sessionStorage.getItem("uid"));
+    }else{
+      alert('Unsported Format')
+    }
+      
     axios.post("http://localhost:5000/addpost", frm).then((res) => {
       console.log(res.data);
     });
     setTimeout(() => {
       setOpen(false);
     }, 1000);
-    
   };
 
   return (
@@ -124,16 +131,21 @@ const Add = () => {
           />
 
           <Stack direction="row" gap={1} mt={2} mb={3}>
-          <Button
-      component="label"
-      role={undefined}
-      variant="contained"
-      tabIndex={-1}
-      startIcon={<CloudUploadIcon />}
-    >
-      Upload file
-      <VisuallyHiddenInput type="file" onChange={(event) => setPhoto(event.target.files[0])} />
-    </Button>
+            <Button
+              component="label"
+              role={undefined}
+              variant="contained"
+              tabIndex={-1}
+              startIcon={<CloudUploadIcon />}
+            >
+              Upload file
+              <VisuallyHiddenInput
+                type="file"
+                onChange={(event) => {
+                  setPhoto(event.target.files[0]);
+                }}
+              />
+            </Button>
             {/* <EmojiEmotions color="primary" />
             <Image color="secondary" />
             <VideoCameraBack color="success" />
