@@ -6,6 +6,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const port = 5000;
 const multer = require("multer");
+const { ObjectId } = require("mongoose").Types;
 
 const PATH = "./public/images";
 const upload = multer({
@@ -443,7 +444,7 @@ app.put("/changepassword/:id", async (req, res) => {
           { userPassword: userNewPassword },
           { new: true }
         );
-        res.send({msg:'Password Changed',updatedPass});
+        res.send({ msg: "Password Changed", updatedPass });
       } else {
         res.send("Old Password is Not Matching");
       }
@@ -459,11 +460,25 @@ app.put("/changepassword/:id", async (req, res) => {
 //PostsSchema
 
 const postSchemaStructure = new mongoose.Schema({
-  postCaption: {
+  postFile: {
     type: String,
     required: true,
   },
-  postFile: {
+  postHeadId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "postHeadschema",
+    required: true,
+  },
+  postType: {
+    type: String,
+    required: true,
+  },
+});
+
+const Post = mongoose.model("postschema", postSchemaStructure);
+
+const postHeadSchemaStructure = new mongoose.Schema({
+  postCaption: {
     type: String,
     required: true,
   },
@@ -483,28 +498,51 @@ postSchemaStructure.pre("save", function (next) {
   next();
 });
 
-const Post = mongoose.model("postschema", postSchemaStructure);
+const PostHead = mongoose.model("postHeadschema", postHeadSchemaStructure);
 
 //Add Image Post
 
 app.post(
   "/addpost",
-  upload.fields([{ name: "postFile", maxCount: 1 }]),
+  upload.fields([{ name: "postFile", maxCount: 10 }]), // Adjust maxCount for multiple files
 
   async (req, res) => {
     try {
-      var fileValue = JSON.parse(JSON.stringify(req.files));
-      var postFile = `http://127.0.0.1:${port}/images/${fileValue.postFile[0].filename}`;
-
       const { postCaption, userId } = req.body;
-      console.log(req.body);
-      const post = new Post({
+      const postHead = new PostHead({
         postCaption,
-        postFile,
         userId,
       });
-      await post.save();
-      res.json("Post Added");
+      const postHeadCollection = await postHead.save();
+
+      const files = req.files["postFile"]; // Get the array of files
+
+      // Process each file
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const isImage = file.mimetype.startsWith("image");
+        const isVideo = file.mimetype.startsWith("video");
+
+        // Determine the type of file
+        let postType = "other";
+        if (isImage) {
+          postType = "image";
+        } else if (isVideo) {
+          postType = "video";
+        }
+
+        const fileUrl = `http://127.0.0.1:${port}/images/${file.filename}`;
+
+        // Save each post individually
+        const post = new Post({
+          postHeadId: postHeadCollection._id,
+          postFile: fileUrl,
+          postType, // Save post type along with the file
+        });
+        await post.save();
+      }
+
+      res.json({ msg: "Inserted " }); // Return saved posts
     } catch (err) {
       console.log(err.msg);
       res.status(500).json({ msg: "Server Error" });
@@ -542,21 +580,83 @@ app.post(
 //Post Find
 app.get("/posts/:uid", async (req, res) => {
   try {
-    const uid = req.params.uid;
-    const posts = await Post.find().populate("userId");
+    const uid = new ObjectId(req.params.uid); // Convert uid to ObjectId
+    const posts = await Post.aggregate([
+      {
+        $lookup: {
+          from: "postheadschemas", // Collection name of PostHead model
+          localField: "postHeadId",
+          foreignField: "_id",
+          as: "postHead",
+        },
+      },
+      {
+        $unwind: "$postHead", // Deconstructs the postHead array created by $lookup
+      },
+      {
+        $lookup: {
+          from: "users", // Collection name of User model
+          localField: "postHead.userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user", // Deconstructs the user array created by $lookup
+      },
+      {
+        $group: {
+          _id: "$postHeadId", // Group posts by postHeadId
+          postHead: { $first: "$postHead" }, // Take the first postHead object in each group
+          user: { $first: "$user" }, // Take the first user object in each group
+          posts: { $push: "$$ROOT" }, // Push all posts in the group into an array
+        },
+      },
+      {
+        $project: {
+          // Select fields to include in the final output
+          _id: "$postHead._id",
+          postCaption: "$postHead.postCaption",
+          postDateTime: "$postHead.postDateTime",
+          userId: "$postHead.userId",
+          user: {
+            _id: "$user._id",
+            userName: "$user.userName",
+            userFullName: "$user.userFullName",
+            userContact: "$user.userContact",
+            userEmail: "$user.userEmail",
+            userPassword: "$user.userPassword",
+            placeId: "$user.placeId",
+            userPhoto: "$user.userPhoto",
+            userType: "$user.userType",
+            userGender: "$user.userGender",
+            userStatus: "$user.userStatus",
+          },
+          posts: {
+            $map: {
+              // Map posts array to include only necessary fields
+              input: "$posts",
+              as: "post",
+              in: {
+                _id: "$$post._id",
+                postFile: "$$post.postFile",
+                postType: "$$post.postType",
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: { postDateTime: -1 }, // Sort posts by postDateTime in descending order
+      },
+    ]);
+
+    console.log(posts);
+
     if (!posts || posts.length === 0) {
-      return res.status(404).json({ msg: "No Data" });
+      return res.json([]);
     } else {
-      const postFinaldata = await Promise.all(
-        posts.map(async (post) => {
-          post = post.toJSON();
-          const like = await Like.findOne({ userId: uid, postId: post._id });
-          post.like = !!like; // Convert like to boolean
-          return post;
-        })
-      );
-      console.log(postFinaldata);
-      res.status(200).json(postFinaldata);
+      res.status(200).json(posts);
     }
   } catch (err) {
     console.error("Error", err);
@@ -564,40 +664,40 @@ app.get("/posts/:uid", async (req, res) => {
   }
 });
 
-//Post Find By Id
+// //Post Find By Id
 
-app.get("/posts/:id", async (req, res) => {
-  try {
-    const postId = req.params.id;
-    const posts = await Post.findById(postId);
-    if (!posts) {
-      res.send({ msg: "No Data with this ID" });
-    } else {
-      res.send(posts).status(200);
-    }
-  } catch (err) {
-    console.error("Error", err);
-    res.status(500).json({ msg: "Server Error" });
-  }
-});
+// app.get("/posts/:id", async (req, res) => {
+//   try {
+//     const postId = req.params.id;
+//     const posts = await Post.findById(postId);
+//     if (!posts) {
+//       res.send({ msg: "No Data with this ID" });
+//     } else {
+//       res.send(posts).status(200);
+//     }
+//   } catch (err) {
+//     console.error("Error", err);
+//     res.status(500).json({ msg: "Server Error" });
+//   }
+// });
 
-//Post Delete
+// //Post Delete
 
-app.delete("/posts/:id", async (req, res) => {
-  try {
-    const postId = req.params.id;
-    const deletedPost = await Post.findByIdAndDelete(postId);
-    await Comment.deleteMany({ postId });
-    if (!deletedPost) {
-      return res.status(404).json({ message: "Post not found" });
-    } else {
-      res.json({ message: "Post deleted successfully", deletedPost });
-    }
-  } catch (err) {
-    console.error("Error Deleting Post", err);
-    res.status(500).json({ msg: "Server Error" });
-  }
-});
+// app.delete("/posts/:id", async (req, res) => {
+//   try {
+//     const postId = req.params.id;
+//     const deletedPost = await Post.findByIdAndDelete(postId);
+//     await Comment.deleteMany({ postId });
+//     if (!deletedPost) {
+//       return res.status(404).json({ message: "Post not found" });
+//     } else {
+//       res.json({ message: "Post deleted successfully", deletedPost });
+//     }
+//   } catch (err) {
+//     console.error("Error Deleting Post", err);
+//     res.status(500).json({ msg: "Server Error" });
+//   }
+// });
 
 //commentSchema
 
@@ -612,7 +712,7 @@ const commentSchemaStructure = new mongoose.Schema({
   },
   postId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "postschema",
+    ref: "postHeadschema",
     required: true,
   },
   userId: {
@@ -732,7 +832,7 @@ const likeSchemaStructure = new mongoose.Schema({
   },
   postId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "postschema",
+    ref: "postHeadschema",
     required: true,
   },
   userId: {

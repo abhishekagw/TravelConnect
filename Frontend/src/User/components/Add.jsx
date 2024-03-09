@@ -54,28 +54,39 @@ const Add = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const fileType = photo.type.split("/")[0]; // This will give you the general type (image or video)
 
-    if(fileType=='video'){
-      const frm = new FormData();
-      frm.append("postCaption", caption);
-      frm.append("videoFIle", photo);
-      frm.append("userId", sessionStorage.getItem("uid"));
-    }else if(fileType=='image'){
-      const frm = new FormData();
-      frm.append("postCaption", caption);
-      frm.append("postFile", photo);
-      frm.append("userId", sessionStorage.getItem("uid"));
-    }else{
-      alert('Unsported Format')
+    // Create a new FormData object
+    const formData = new FormData();
+
+    // Append other form data
+    formData.append("postCaption", caption);
+    formData.append("userId", sessionStorage.getItem("uid"));
+
+    // Append each file to the FormData object
+    for (let i = 0; i < photo.length; i++) {
+      formData.append("postFile", photo[i]);
     }
-      
-    axios.post("http://localhost:5000/addpost", frm).then((res) => {
-      console.log(res.data);
-    });
-    setTimeout(() => {
-      setOpen(false);
-    }, 1000);
+
+    // Send the FormData object using axios
+    axios
+      .post("http://localhost:5000/addpost", formData)
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.error("Error uploading files:", error);
+      });
+  };
+
+  const FileHandle = (event) => {
+    const files = event.target.files;
+
+    if (files.length + photo.length > 6) {
+      // If so, alert the user
+      alert("You can only upload up to 6 files.");
+      return; // Exit the function
+    }
+    setPhoto(files);
   };
 
   return (
@@ -139,12 +150,7 @@ const Add = () => {
               startIcon={<CloudUploadIcon />}
             >
               Upload file
-              <VisuallyHiddenInput
-                type="file"
-                onChange={(event) => {
-                  setPhoto(event.target.files[0]);
-                }}
-              />
+              <VisuallyHiddenInput multiple type="file" onChange={FileHandle} />
             </Button>
             {/* <EmojiEmotions color="primary" />
             <Image color="secondary" />

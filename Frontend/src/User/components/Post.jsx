@@ -17,6 +17,7 @@ import React, { useEffect, useState } from "react";
 import Comment from "../Pages/Comment";
 import CommentIcon from "@mui/icons-material/Comment";
 import axios from "axios";
+import Carousel from "react-material-ui-carousel";
 
 const Post = ({ data, fetchPost }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -33,8 +34,8 @@ const Post = ({ data, fetchPost }) => {
   const [check, setCheck] = useState(false);
   const uid = sessionStorage.getItem("uid");
   const post = data._id;
-  const user = data.userId._id;
-  const userPhoto = data.userId.userPhoto;
+  const user = data.userId;
+  const userPhoto = data.user.userPhoto;
   console.log(userPhoto);
 
   const LikeStatus = () => {
@@ -109,7 +110,7 @@ const Post = ({ data, fetchPost }) => {
             <Avatar src="userPhoto"></Avatar>
           ) : (
             <Avatar sx={{ bgcolor: "red" }} aria-label="recipe">
-              {data.userId.userFullName.charAt(0)}
+              {data.user.userFullName.charAt(0)}
             </Avatar>
           )
         }
@@ -147,18 +148,39 @@ const Post = ({ data, fetchPost }) => {
             </Box>
           ) : null
         }
-        title={data.userId.userFullName}
+        title={data.user.userFullName}
         subheader="September 14, 2016"
       />
-      <CardMedia
-        component="img"
-        height="20%"
-        image={data.postFile}
-        alt="Paella dish"
-      />
+      <Carousel height={"500px"} stopAutoPlayOnHover={true} autoPlay={false}>
+        {data.posts.map((post, key) => (
+          <Box key={key}>
+            {post.postType === "image" ? (
+              <CardMedia
+                component="img"
+                height="100%"
+                width="20%"
+                image={post.postFile}
+                alt="Image"
+              />
+            ) : (
+              <video
+                controls // Adding controls attribute for playback control
+                autoplay // Adding autoplay attribute for automatic playback
+                muted // Adding muted attribute to mute the video by default
+                width="100%" // Setting width to 100% of the container
+                height="500px" // Setting height to auto to maintain aspect ratio
+              >
+                <source src={post.postFile} type="video/mp4" />
+              </video>
+            )}
+          </Box>
+        ))}
+      </Carousel>
+
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-       <b style={{color:'black'}}> {data.userId.userName} </b>  {data.postCaption}
+          <b style={{ color: "black" }}> {data.user.userName} </b>{" "}
+          {data.postCaption}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -188,7 +210,7 @@ const Post = ({ data, fetchPost }) => {
           <Share />
         </IconButton>
       </CardActions>
-      {check && <Comment post={post}  countData={countData} />}
+      {check && <Comment post={post} countData={countData} />}
     </Card>
   );
 };
