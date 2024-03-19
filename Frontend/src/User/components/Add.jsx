@@ -20,7 +20,7 @@ import {
   styled,
 } from "@mui/material";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 const VisuallyHiddenInput = styled("input")({
@@ -51,6 +51,8 @@ const Add = () => {
   const [open, setOpen] = useState(false);
   const [caption, setCaption] = useState("");
   const [photo, setPhoto] = useState([]);
+  const [hashTags,setHashtags]=useState("");
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -60,6 +62,7 @@ const Add = () => {
 
     // Append other form data
     formData.append("postCaption", caption);
+    formData.append("hashtagName", hashTags);
     formData.append("userId", sessionStorage.getItem("uid"));
 
     // Append each file to the FormData object
@@ -89,6 +92,9 @@ const Add = () => {
     setPhoto(files);
   };
 
+
+  
+
   return (
     <>
       <Tooltip
@@ -114,7 +120,7 @@ const Add = () => {
       >
         <Box
           width={1000}
-          height={350}
+          height={400}
           bgcolor={"background.default"}
           p={3}
           borderRadius={5}
@@ -157,6 +163,15 @@ const Add = () => {
             <VideoCameraBack color="success" />
             <PersonAdd color="error" /> */}
           </Stack>
+          <Box display={"flex"}>
+            <TextField
+              id="standard-basic"
+              variant="outlined"
+              sx={{ width: "250px", height: "5px", mb: "70px" }}
+              placeholder="Add HashTags"
+              onChange={(e)=>setHashtags(e.target.value)}
+            />
+          </Box>
           <ButtonGroup
             fullWidth
             variant="contained"

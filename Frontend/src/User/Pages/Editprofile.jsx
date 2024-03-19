@@ -93,7 +93,7 @@ const Editprofile = () => {
               variant="outlined"
               sx={{ width: "250px" }}
               onChange={(e) => setUserName(e.target.value)}
-              value={'@ '+userName}
+              value={userName}
             />
           </Box>
           <Box

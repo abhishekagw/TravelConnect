@@ -18,7 +18,7 @@ const Sidebar = ({mode,setMode}) => {
               <ListItemIcon>
                <Home/>
               </ListItemIcon>
-              <ListItemText primary="Inbox" />
+              <ListItemText primary="Home" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
@@ -26,7 +26,7 @@ const Sidebar = ({mode,setMode}) => {
               <ListItemIcon>
                <Article/>
               </ListItemIcon>
-              <ListItemText primary="Pages" />
+              <ListItemText primary="Feeds" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
@@ -34,7 +34,7 @@ const Sidebar = ({mode,setMode}) => {
               <ListItemIcon>
                <Groups/>
               </ListItemIcon>
-              <ListItemText primary="Groups" />
+              <ListItemText primary="Chats" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>

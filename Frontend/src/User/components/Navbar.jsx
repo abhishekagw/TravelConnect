@@ -3,9 +3,12 @@ import {
   Avatar,
   Badge,
   Box,
+  Fade,
   InputBase,
   Menu,
   MenuItem,
+  Paper,
+  Popper,
   Toolbar,
   Typography,
   styled,
@@ -14,6 +17,7 @@ import React, { useEffect, useState } from "react";
 import { Mail, Notifications, Pets } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import FollowingAlert from "../Pages/FollowingAlert";
 
 const StyledToolbar = styled(Toolbar)({
   display: "flex",
@@ -47,26 +51,43 @@ const UserBox = styled(Box)(({ theme }) => ({
 const Navbar = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [name,setName]=useState('')
+  const [name, setName] = useState("");
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [opens, setOpens] = useState(false);
+  const [placement, setPlacement] = useState();
+  const [followAlert, setFollowAlert] = useState([]);
+
+  const uid = sessionStorage.getItem("uid");
+
+  const fetchData = () => {
+    axios.get("http://localhost:5000/follower/" + uid).then((res) => {
+      setFollowAlert(res.data);
+    });
+  };
   const logOut = () => {
     sessionStorage.clear();
     navigate("../../guest/login");
   };
 
   useEffect(() => {
-    const uid = sessionStorage.getItem("uid");
-
     axios.get("http://localhost:5000/user/" + uid).then((res) => {
       console.log(res.data);
       setName(res.data.userFullName);
     });
+    fetchData();
   }, []);
+
+  const handleClick = (newPlacement) => (event) => {
+    setAnchorEl(event.currentTarget);
+    setOpens((prev) => placement !== newPlacement || !prev);
+    setPlacement(newPlacement);
+  };
 
   return (
     <AppBar position="sticky">
       <StyledToolbar>
         <Typography variant="h6" sx={{ display: { xs: "none", sm: "block" } }}>
-          I AM AGW
+          TravelConnect
         </Typography>
         <Pets sx={{ display: { xs: "block", sm: "none" } }} />
         <Search>
@@ -77,7 +98,7 @@ const Navbar = () => {
             <Mail />
           </Badge>
           <Badge badgeContent={4} color="error">
-            <Notifications />
+            <Notifications onClick={handleClick("bottom-end")} />
           </Badge>
           <Avatar
             sx={{ width: 30, height: 30 }}
@@ -112,6 +133,26 @@ const Navbar = () => {
         <MenuItem>My account</MenuItem>
         <MenuItem onClick={logOut}>Logout</MenuItem>
       </Menu>
+      <Popper
+        // Note: The following zIndex style is specifically for documentation purposes and may not be necessary in your application.
+        sx={{ zIndex: 1200 }}
+        open={opens}
+        anchorEl={anchorEl}
+        placement={placement}
+        transition
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={350}>
+            <Paper>
+              <Typography sx={{ p: 1 }}>
+                {followAlert?(followAlert.map((alerts) => (
+                  <FollowingAlert datas={alerts} fetchData={fetchData} />
+                ))):("Nothing To Show")}
+              </Typography>
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
     </AppBar>
   );
 };

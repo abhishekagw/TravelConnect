@@ -9,6 +9,8 @@ import { Route, Routes } from "react-router-dom";
 import Editprofile from "./Pages/Editprofile";
 import Changepassword from "./Pages/Changepassword";
 import MyProfile from "./Pages/MyProfile";
+import UserProfile from "./Pages/UserProfile";
+import FollowingAlert from "./Pages/FollowingAlert";
 
 function App() {
   const [mode, setMode] = useState("light");
@@ -30,7 +32,9 @@ function App() {
               <Route path="/" element={<Feed />} />
               <Route path="/editprofile" element={<Editprofile />} />
               <Route path="/changepassword" element={<Changepassword />} />
-              <Route path="/myprofile" element={<MyProfile/>} />
+              <Route path="/myprofile" element={<MyProfile />} />
+              <Route path="/userprofile" element={<UserProfile />} />
+              <Route path="/followingalert" element={<FollowingAlert />} />
             </Routes>
           </Box>
 

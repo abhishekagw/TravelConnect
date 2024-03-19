@@ -5,30 +5,62 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import Post from "../components/Post";
 
-const MyProfile = () => {
+const UserProfile = () => {
   const [data, setData] = useState("");
   const [tpost, setTpost] = useState("");
   const [posts, setPOst] = useState([]);
-
+  const [follow, setFollow] = useState(false);
   const uid = sessionStorage.getItem("uid");
 
+  const id = "65cf0b064d3399b3376d6b8c";
+
   const fetchData = () => {
-    axios.get("http://localhost:5000/user/" + uid).then((res) => {
+    axios.get("http://localhost:5000/user/" + id).then((res) => {
       console.log(res.data);
       setData(res.data);
     });
-    axios.get("http://localhost:5000/user/totalposts/" + uid).then((res) => {
+    axios.get("http://localhost:5000/user/totalposts/" + id).then((res) => {
       console.log(res.data);
-      setTpost(res.data.totalPosts)
+      setTpost(res.data.totalPosts);
     });
   };
 
+  axios
+    .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
+    .then((response) => {
+      if (response.data) {
+        setFollow(true);
+      } else {
+        setFollow(false);
+      }
+    });
 
   const fetchPost = () => {
-    axios.get("http://localhost:5000/postsSingleUser/"+uid).then((res) => {
+    axios.get("http://localhost:5000/postsSingleUser/" + id).then((res) => {
       console.log(res.data);
       setPOst(res.data);
     });
+  };
+
+  const handleFollow = () => {
+    const data = {
+      userFrom: uid,
+      userTo: id,
+    };
+    axios.post("http://localhost:5000/follow", data).then((res) => {
+      console.log(res.data);
+      setFollow(true);
+      // countFollow();
+    });
+  };
+  const handleUnfollow = () => {
+    axios
+      .delete("http://localhost:5000/follow/" + uid + "/" + id)
+      .then((res) => {
+        console.log(res.data);
+        setFollow(false);
+        // countFollow();
+      });
   };
 
   useEffect(() => {
@@ -64,16 +96,17 @@ const MyProfile = () => {
               <Typography variant="h5" fontWeight={"bold"}>
                 @ {data.userName}
               </Typography>
-              <Button sx={{ marginLeft: "30px" }} variant="contained">
-                <Link
-                  to="/user/editprofile"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  Edit Profile
-                </Link>
+              <Button
+                sx={{ marginLeft: "30px" }}
+                variant="contained"
+                onClick={() => {
+                  follow ? handleUnfollow() : handleFollow();
+                }}
+              >
+                { follow? "Following":"Follow"}
               </Button>
               <Button sx={{ marginLeft: "30px" }} variant="contained">
-                Tools
+                Message
               </Button>
               <SettingsIcon
                 sx={{ paddingLeft: "25px", width: "50px", height: "30px" }}
@@ -81,7 +114,11 @@ const MyProfile = () => {
             </Box>
             <Box display={"flex"} paddingTop={"30px"}>
               <Typography variant="h6">
-                <span style={{ fontWeight: "bold" }}> {tpost?tpost:0} </span> Posts
+                <span style={{ fontWeight: "bold" }}>
+                  {" "}
+                  {tpost ? tpost : 0}{" "}
+                </span>{" "}
+                Posts
               </Typography>
               <Typography variant="h6" sx={{ paddingLeft: "30px" }}>
                 <span style={{ fontWeight: "bold" }}> 1050 </span>Followers
@@ -187,12 +224,12 @@ const MyProfile = () => {
       </Box>
       <Divider sx={{ paddingTop: "50px" }} />
       <Box>
-      {posts.map((post) => (
-        <Post data= {post} fetchPost={fetchPost}/>
-      ))}
-    </Box>
+        {posts.map((post) => (
+          <Post data={post} fetchPost={fetchPost} />
+        ))}
+      </Box>
     </div>
   );
 };
 
-export default MyProfile;
+export default UserProfile;

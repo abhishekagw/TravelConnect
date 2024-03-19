@@ -394,6 +394,20 @@ app.get("/user/:id", async (req, res) => {
   }
 });
 
+//user total post BY Id
+
+app.get("/user/totalposts/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const totalPosts = await PostHead.countDocuments({ userId });
+
+    res.send({ totalPosts }).status(200);
+  } catch (err) {
+    console.error("error", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 //User Delete
 
 app.delete("/user/:id", async (req, res) => {
@@ -508,11 +522,20 @@ app.post(
 
   async (req, res) => {
     try {
-      const { postCaption, userId } = req.body;
+      const { postCaption, userId, hashtagName } = req.body;
       const postHead = new PostHead({
         postCaption,
         userId,
       });
+
+      const allHashtag = await HashTag.findOne({ hashtagName });
+      if (!allHashtag) {
+        const hashtag = new HashTag({
+          hashtagName,
+        });
+        await hashtag.save();
+        
+      } 
       const postHeadCollection = await postHead.save();
 
       const files = req.files["postFile"]; // Get the array of files
@@ -578,9 +601,8 @@ app.post(
 );
 
 //Post Find
-app.get("/posts/:uid", async (req, res) => {
+app.get("/posts", async (req, res) => {
   try {
-    const uid = new ObjectId(req.params.uid); // Convert uid to ObjectId
     const posts = await Post.aggregate([
       {
         $lookup: {
@@ -589,6 +611,97 @@ app.get("/posts/:uid", async (req, res) => {
           foreignField: "_id",
           as: "postHead",
         },
+      },
+      {
+        $unwind: "$postHead", // Deconstructs the postHead array created by $lookup
+      },
+      {
+        $lookup: {
+          from: "users", // Collection name of User model
+          localField: "postHead.userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user", // Deconstructs the user array created by $lookup
+      },
+      {
+        $group: {
+          _id: "$postHeadId", // Group posts by postHeadId
+          postHead: { $first: "$postHead" }, // Take the first postHead object in each group
+          user: { $first: "$user" }, // Take the first user object in each group
+          posts: { $push: "$$ROOT" }, // Push all posts in the group into an array
+        },
+      },
+      {
+        $project: {
+          // Select fields to include in the final output
+          _id: "$postHead._id",
+          postCaption: "$postHead.postCaption",
+          postDateTime: "$postHead.postDateTime",
+          userId: "$postHead.userId",
+          user: {
+            _id: "$user._id",
+            userName: "$user.userName",
+            userFullName: "$user.userFullName",
+            userContact: "$user.userContact",
+            userEmail: "$user.userEmail",
+            userPassword: "$user.userPassword",
+            placeId: "$user.placeId",
+            userPhoto: "$user.userPhoto",
+            userType: "$user.userType",
+            userGender: "$user.userGender",
+            userStatus: "$user.userStatus",
+          },
+          posts: {
+            $map: {
+              // Map posts array to include only necessary fields
+              input: "$posts",
+              as: "post",
+              in: {
+                _id: "$$post._id",
+                postFile: "$$post.postFile",
+                postType: "$$post.postType",
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: { postDateTime: -1 }, // Sort posts by postDateTime in descending order
+      },
+    ]);
+
+    console.log(posts);
+
+    if (!posts || posts.length === 0) {
+      return res.json([]);
+    } else {
+      res.status(200).json(posts);
+    }
+  } catch (err) {
+    console.error("Error", err);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+app.get("/postsSingleUser/:id", async (req, res) => {
+  try {
+    let id = req.params.id;
+    id = new ObjectId(id);
+
+    const posts = await Post.aggregate([
+      {
+        $lookup: {
+          from: "postheadschemas", // Collection name of PostHead model
+          localField: "postHeadId",
+          foreignField: "_id",
+          as: "postHead",
+        },
+      },
+      {
+        $match: { "postHead.userId": id }, // Filter posts by userId
       },
       {
         $unwind: "$postHead", // Deconstructs the postHead array created by $lookup
@@ -864,6 +977,8 @@ app.post("/like", async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
+
 
 //Like Delete
 
@@ -1233,7 +1348,7 @@ app.get("/hashtag", async (req, res) => {
     if (!hashtag) {
       res.send("No Data");
     } else {
-      res.send(hashtag).status(200);
+      res.send({ hashtag }).status(200);
     }
   } catch (err) {
     console.error(err);
@@ -1280,6 +1395,7 @@ app.delete("/hashtag/:id", async (req, res) => {
 const followlistSchemaStructure = new mongoose.Schema({
   followStatus: {
     type: String,
+    default:0,
   },
   userTo: {
     type: mongoose.Schema.Types.ObjectId,
@@ -1300,13 +1416,12 @@ const Followlist = mongoose.model(
 
 //add Follower
 
-app.post("/followlist", async (req, res) => {
+app.post("/follow", async (req, res) => {
   try {
-    const { userTo, userFrom, followStatus } = req.body;
+    const { userTo, userFrom } = req.body;
     const followlist = new Followlist({
       userTo,
       userFrom,
-      followStatus,
     });
     await followlist.save();
     res.json({ msg: "Started Following" });
@@ -1316,11 +1431,14 @@ app.post("/followlist", async (req, res) => {
   }
 });
 
+
+
 //Follower Find
 
-app.get("/follower", async (req, res) => {
+app.get("/follower/:id", async (req, res) => {
   try {
-    const follower = await Followlist.find();
+    const userTo=req.params.id;
+    const follower = await Followlist.find({userTo}).populate('userFrom');
     if (!follower) {
       res.send("No Data");
     } else {
@@ -1332,29 +1450,41 @@ app.get("/follower", async (req, res) => {
   }
 });
 
-//Follower Find By Id
+//Follow  Status
 
-app.get("/follower/:id", async (req, res) => {
+app.get("/FollowStatus/:uid/:id", async (req, res) => {
   try {
-    const followerId = req.params.id;
-    const follower = await Followlist.findById(followerId);
-    if (!follower) {
-      res.send("No Data with this ID");
-    } else {
-      res.send(follower).status(200);
-    }
+    const userFrom = req.params.uid;
+    const UserTo = req.params.pid;
+    const followStatus = (await Followlist.findOne({ userFrom, UserTo })) ? true : false;
+    res.json(followStatus);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error("Error", err);
+  }
+});
+//Follow  Status Update
+
+app.put("/FollowStatus/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const followStatus = await Followlist.findByIdAndUpdate(
+      id,
+      { followStatus:1 },
+      { new: true }
+    );
+    res.json(followStatus);
+  } catch (err) {
+    console.error("Error", err);
   }
 });
 
 //Follower Delete
 
-app.delete("/follower/:id", async (req, res) => {
+app.delete("/follow/:id/:userid", async (req, res) => {
   try {
-    const followerId = req.params.id;
-    const deletedfollower = await Followlist.findByIdAndDelete(followerId);
+    const userFrom = req.params.id;
+    const userTo = req.params.userid;
+    const deletedfollower = await Followlist.deleteOne({userFrom,userTo});
     if (!deletedfollower) {
       res.send("No Data with this ID");
     } else {
@@ -1365,6 +1495,8 @@ app.delete("/follower/:id", async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 });
+
+//login
 
 app.post("/login", async (req, res) => {
   try {
