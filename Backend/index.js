@@ -7,6 +7,8 @@ const bodyParser = require("body-parser");
 const port = 5000;
 const multer = require("multer");
 const { ObjectId } = require("mongoose").Types;
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 
 const PATH = "./public/images";
 const upload = multer({
@@ -27,7 +29,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("./public"));
 
-app.listen(port, () => {
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:3000",
+  },
+});
+
+httpServer.listen(port, () => {
   try {
     console.log(`Server is running ${port}`);
     mongoose.connect(
@@ -534,8 +543,7 @@ app.post(
           hashtagName,
         });
         await hashtag.save();
-        
-      } 
+      }
       const postHeadCollection = await postHead.save();
 
       const files = req.files["postFile"]; // Get the array of files
@@ -978,8 +986,6 @@ app.post("/like", async (req, res) => {
   }
 });
 
-
-
 //Like Delete
 
 app.delete("/like/:id/:postid", async (req, res) => {
@@ -1229,6 +1235,11 @@ const chatSchemaStructure = new mongoose.Schema({
     type: String,
     required: true,
   },
+  chatListId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "followlistschemas",
+    required: true,
+  },
   userIdFrom: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
@@ -1395,7 +1406,7 @@ app.delete("/hashtag/:id", async (req, res) => {
 const followlistSchemaStructure = new mongoose.Schema({
   followStatus: {
     type: String,
-    default:0,
+    default: 0,
   },
   userTo: {
     type: mongoose.Schema.Types.ObjectId,
@@ -1431,14 +1442,29 @@ app.post("/follow", async (req, res) => {
   }
 });
 
+//Follower List Find
 
+app.get("/followlist/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const follower = await Followlist.findById( id );
+    if (!follower) {
+      res.send("No Data");
+    } else {
+      res.send(follower).status(200);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
 
 //Follower Find
 
 app.get("/follower/:id", async (req, res) => {
   try {
-    const userTo=req.params.id;
-    const follower = await Followlist.find({userTo}).populate('userFrom');
+    const userTo = req.params.id;
+    const follower = await Followlist.find({ userTo }).populate("userFrom");
     if (!follower) {
       res.send("No Data");
     } else {
@@ -1455,9 +1481,18 @@ app.get("/follower/:id", async (req, res) => {
 app.get("/FollowStatus/:uid/:id", async (req, res) => {
   try {
     const userFrom = req.params.uid;
-    const UserTo = req.params.pid;
-    const followStatus = (await Followlist.findOne({ userFrom, UserTo })) ? true : false;
-    res.json(followStatus);
+    const userTo = req.params.id;
+    const followStatus = await Followlist.findOne({
+      $or: [
+        { userFrom: userFrom, userTo: userTo },
+        { userFrom: userTo, userTo: userFrom }
+      ]
+    });
+    if (followStatus) {
+      res.json({ followStatus });
+    } else {
+      res.json({ followStatus:false });
+    }
   } catch (err) {
     console.error("Error", err);
   }
@@ -1469,7 +1504,7 @@ app.put("/FollowStatus/:id", async (req, res) => {
     const id = req.params.id;
     const followStatus = await Followlist.findByIdAndUpdate(
       id,
-      { followStatus:1 },
+      { followStatus: 1 },
       { new: true }
     );
     res.json(followStatus);
@@ -1484,7 +1519,7 @@ app.delete("/follow/:id/:userid", async (req, res) => {
   try {
     const userFrom = req.params.id;
     const userTo = req.params.userid;
-    const deletedfollower = await Followlist.deleteOne({userFrom,userTo});
+    const deletedfollower = await Followlist.deleteOne({ userFrom, userTo });
     if (!deletedfollower) {
       res.send("No Data with this ID");
     } else {
@@ -1493,6 +1528,18 @@ app.delete("/follow/:id/:userid", async (req, res) => {
   } catch (err) {
     console.error("Error", err);
     res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+//Follow Count
+
+app.get("/followcount/:id", async (req, res) => {
+  try {
+    const userTo = req.params.id;
+    const followcount = await Followlist.countDocuments({ userTo });
+    res.send({ followcount });
+  } catch (err) {
+    console.error("Error", err);
   }
 });
 
@@ -1525,3 +1572,30 @@ app.post("/login", async (req, res) => {
     console.error("Error", err);
   }
 });
+
+//Socket IO Chat
+
+io.on('connection', (socket) => {
+
+  socket.on("toServer-sendMessage", async ({ message, Id, Uid, ToId }, callback) => {
+    try {
+      const ChatSchemaData = new Chat({
+        userIdFrom: Uid,
+        userIdTo: ToId,
+        chatListId: Id,
+        chatContent: message,
+        chatDateTime: moment().tz("Asia/Kolkata").format(),
+      });
+      const chatDoc = await ChatSchemaData.save();
+      callback(chatDoc);
+      socket.broadcast.to(Id).emit("toServer-sendMessage", chatDoc);
+
+
+    }
+    catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server error");
+    }
+  })
+
+})

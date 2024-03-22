@@ -2,17 +2,19 @@ import { Avatar, Box, Button, Divider, Typography } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Post from "../components/Post";
 
 const UserProfile = () => {
   const [data, setData] = useState("");
   const [tpost, setTpost] = useState("");
   const [posts, setPOst] = useState([]);
-  const [follow, setFollow] = useState(false);
+  const [follow, setFollow] = useState(0);
+  const [followCount, setFollowCount] = useState(0);
+  const [message, setMessage] = useState([]);
   const uid = sessionStorage.getItem("uid");
 
-  const id = "65cf0b064d3399b3376d6b8c";
+  const { id } = useParams();
 
   const fetchData = () => {
     axios.get("http://localhost:5000/user/" + id).then((res) => {
@@ -23,17 +25,24 @@ const UserProfile = () => {
       console.log(res.data);
       setTpost(res.data.totalPosts);
     });
-  };
 
-  axios
-    .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
-    .then((response) => {
-      if (response.data) {
-        setFollow(true);
-      } else {
-        setFollow(false);
-      }
-    });
+    axios
+      .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
+      .then((response) => {
+        console.log('follow status-'+response.data.followStatus.followStatus);
+        if (response.data.followStatus.followStatus == 0) {
+          setFollow(1);
+          setMessage(response.data.followStatus._id);
+          console.log(response.data.followStatus.followStatus);
+        } else if (response.data.followStatus.followStatus == 1) {
+          setFollow(2);
+          setMessage(response.data.followStatus._id);
+          console.log(response.data.followStatus.followStatus);
+        } else {
+          setFollow(0);
+        }
+      });
+  };
 
   const fetchPost = () => {
     axios.get("http://localhost:5000/postsSingleUser/" + id).then((res) => {
@@ -49,23 +58,44 @@ const UserProfile = () => {
     };
     axios.post("http://localhost:5000/follow", data).then((res) => {
       console.log(res.data);
-      setFollow(true);
-      // countFollow();
+
+      fetchData();
+      countFollow();
     });
   };
+
+  const handleFollowBack = () => {
+    axios
+      .put("http://localhost:5000/FollowStatus/" + message)
+      .then((response) => {
+        console.log(response.data);
+        fetchData();
+      });
+  };
+
   const handleUnfollow = () => {
     axios
       .delete("http://localhost:5000/follow/" + uid + "/" + id)
       .then((res) => {
         console.log(res.data);
-        setFollow(false);
-        // countFollow();
+
+        setMessage("");
+
+        fetchData();
+        countFollow();
       });
+  };
+
+  const countFollow = () => {
+    axios.get("http://localhost:5000/followcount/" + id).then((response) => {
+      setFollowCount(response.data.followcount);
+    });
   };
 
   useEffect(() => {
     fetchData();
     fetchPost();
+    countFollow();
   }, []);
   return (
     <div>
@@ -100,14 +130,22 @@ const UserProfile = () => {
                 sx={{ marginLeft: "30px" }}
                 variant="contained"
                 onClick={() => {
-                  follow ? handleUnfollow() : handleFollow();
+                  if (follow === 1) {
+                    handleFollowBack();
+                  } else if (follow === 0) {
+                    handleFollow();
+                  } else if (follow === 2) {
+                    handleUnfollow();
+                  }
                 }}
               >
-                { follow? "Following":"Follow"}
+                {follow === 1 ? 'Follow back' : follow === 0 ? 'Follow' : 'Following'}
               </Button>
-              <Button sx={{ marginLeft: "30px" }} variant="contained">
-                Message
-              </Button>
+              <Link to={"/user/chats/" + message}>
+                <Button sx={{ marginLeft: "30px" }} variant="contained">
+                  Message
+                </Button>
+              </Link>
               <SettingsIcon
                 sx={{ paddingLeft: "25px", width: "50px", height: "30px" }}
               />
@@ -121,7 +159,11 @@ const UserProfile = () => {
                 Posts
               </Typography>
               <Typography variant="h6" sx={{ paddingLeft: "30px" }}>
-                <span style={{ fontWeight: "bold" }}> 1050 </span>Followers
+                <span style={{ fontWeight: "bold" }}>
+                  {" "}
+                  {followCount ? followCount : 0}{" "}
+                </span>
+                Followers
               </Typography>
               <Typography variant="h6" sx={{ paddingLeft: "30px" }}>
                 <span style={{ fontWeight: "bold" }}> 151 </span>Following

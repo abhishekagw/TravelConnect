@@ -11,6 +11,9 @@ import Changepassword from "./Pages/Changepassword";
 import MyProfile from "./Pages/MyProfile";
 import UserProfile from "./Pages/UserProfile";
 import FollowingAlert from "./Pages/FollowingAlert";
+import Search from "./Pages/Search";
+import Chats from "./components/Chat/Chats";
+import RightChatBar from "./components/RightChatBar";
 
 function App() {
   const [mode, setMode] = useState("light");
@@ -33,12 +36,14 @@ function App() {
               <Route path="/editprofile" element={<Editprofile />} />
               <Route path="/changepassword" element={<Changepassword />} />
               <Route path="/myprofile" element={<MyProfile />} />
-              <Route path="/userprofile" element={<UserProfile />} />
+              <Route path="/userprofile/:id" element={<UserProfile />} />
               <Route path="/followingalert" element={<FollowingAlert />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/chats/:id" element={<Chats />} />
             </Routes>
           </Box>
 
-          <Rightbar />
+          <RightChatBar />
         </Stack>
         <Add />
       </Box>
