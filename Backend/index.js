@@ -1233,7 +1233,6 @@ const chatSchemaStructure = new mongoose.Schema({
   },
   chatStatus: {
     type: String,
-    required: true,
   },
   chatListId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -1292,18 +1291,22 @@ app.get("/chat", async (req, res) => {
 
 //chatFind By Id
 
-app.get("/chat/:id", async (req, res) => {
+app.get("/Chat/:ChatlistId", async (req, res) => {
   try {
-    const chatId = req.params.id;
-    const chat = await Chat.findById(chatId);
-    if (!chat) {
-      res.send("No Data with this ID");
-    } else {
-      res.send(chat).status(200);
-    }
+    const ChatListId = new mongoose.Types.ObjectId(req.params.ChatlistId)
+
+    const chats = await Chat.aggregate([
+      {
+        $match: {
+          chatListId: ChatListId
+        }
+      },
+
+    ]);
+    res.json({chats});
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error(err.message);
+    res.status(500).send("Server error");
   }
 });
 
@@ -1447,7 +1450,7 @@ app.post("/follow", async (req, res) => {
 app.get("/followlist/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const follower = await Followlist.findById( id );
+    const follower = await Followlist.findById(id);
     if (!follower) {
       res.send("No Data");
     } else {
@@ -1456,6 +1459,62 @@ app.get("/followlist/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+//Follower List Find
+
+app.get("/followlist/:Lid/:Uid", async (req, res) => {
+  try {
+    const { Lid, Uid } = req.params;
+
+    const otherUser = await Followlist.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(Lid),
+        },
+      },
+      {
+        $project: {
+          otherUser: {
+            $cond: [
+              { $eq: ["$userTo", new mongoose.Types.ObjectId(Uid)] },
+              "$userFrom",
+              "$userTo",
+            ],
+          },
+          followListId: "$_id", // Project the ChatList ID
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "otherUser",
+          foreignField: "_id",
+          as: "userData",
+        },
+      },
+      {
+        $unwind: "$userData", // Unwind the array
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ["$userData", { followListId: "$followListId" }], // Combine friend and chatListId into a single object
+          },
+        }, // Promote the unwound document to the root level
+      },
+    ]);
+
+    if (otherUser.length === 0) {
+      return res.json({ message: "Other user data not found" });
+    } else {
+      console.log(otherUser);
+       res.json({otherUser:otherUser[0]});
+    }
+  } catch (error) {
+    console.error("Error retrieving other user data:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -1485,13 +1544,13 @@ app.get("/FollowStatus/:uid/:id", async (req, res) => {
     const followStatus = await Followlist.findOne({
       $or: [
         { userFrom: userFrom, userTo: userTo },
-        { userFrom: userTo, userTo: userFrom }
-      ]
+        { userFrom: userTo, userTo: userFrom },
+      ],
     });
     if (followStatus) {
       res.json({ followStatus });
     } else {
-      res.json({ followStatus:false });
+      res.json({ followStatus: false });
     }
   } catch (err) {
     console.error("Error", err);
@@ -1575,27 +1634,39 @@ app.post("/login", async (req, res) => {
 
 //Socket IO Chat
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
 
-  socket.on("toServer-sendMessage", async ({ message, Id, Uid, ToId }, callback) => {
-    try {
-      const ChatSchemaData = new Chat({
-        userIdFrom: Uid,
-        userIdTo: ToId,
-        chatListId: Id,
-        chatContent: message,
-        chatDateTime: moment().tz("Asia/Kolkata").format(),
-      });
-      const chatDoc = await ChatSchemaData.save();
-      callback(chatDoc);
-      socket.broadcast.to(Id).emit("toServer-sendMessage", chatDoc);
-
-
-    }
-    catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server error");
-    }
+  socket.on("createRoomFromClient", ({ id }) => {
+    const roomKey = id
+    socket.join(roomKey);
   })
 
-})
+  socket.on("typing-started", ({ id }) => {
+    socket.broadcast.to(id).emit("typing-started-from-server")
+  })
+
+  socket.on("typing-stopped", ({ id }) => {
+    socket.broadcast.to(id).emit("typing-stopped-from-server")
+  })
+
+  socket.on(
+    "toServer-sendMessage",
+    async ({ message, Id, Uid, ToId }, callback) => {
+      try {
+        const ChatSchemaData = new Chat({
+          userIdFrom: Uid,
+          userIdTo: ToId,
+          chatListId: Id,
+          chatContent: message,
+          chatDateTime: moment().tz("Asia/Kolkata").format(),
+        });
+        const chatDoc = await ChatSchemaData.save();
+        callback(chatDoc);
+        socket.broadcast.to(Id).emit("toServer-sendMessage", chatDoc);
+      } catch (err) {
+        console.error(err.message);
+       console.log("Server error");
+      }
+    }
+  );
+});

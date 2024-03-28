@@ -10,6 +10,7 @@ const UserProfile = () => {
   const [tpost, setTpost] = useState("");
   const [posts, setPOst] = useState([]);
   const [follow, setFollow] = useState(0);
+  const [followlist, setfollowlist] = useState([]);
   const [followCount, setFollowCount] = useState(0);
   const [message, setMessage] = useState([]);
   const uid = sessionStorage.getItem("uid");
@@ -29,9 +30,14 @@ const UserProfile = () => {
     axios
       .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
       .then((response) => {
-        console.log('follow status-'+response.data.followStatus.followStatus);
-        if (response.data.followStatus.followStatus == 0) {
-          setFollow(1);
+        setfollowlist(response.data.followStatus);
+        console.log("follow status-" + followlist.followStatus);
+        if (followlist.followStatus == 0) {
+          if (followlist.userFrom === uid) {
+            setFollow(2);
+          } else {
+            setFollow(1);
+          }
           setMessage(response.data.followStatus._id);
           console.log(response.data.followStatus.followStatus);
         } else if (response.data.followStatus.followStatus == 1) {
@@ -65,6 +71,10 @@ const UserProfile = () => {
   };
 
   const handleFollowBack = () => {
+    console.log("followback");
+    if (followlist.userFrom === uid) {
+      
+    }
     axios
       .put("http://localhost:5000/FollowStatus/" + message)
       .then((response) => {
@@ -74,6 +84,8 @@ const UserProfile = () => {
   };
 
   const handleUnfollow = () => {
+    console.log("unfollow");
+
     axios
       .delete("http://localhost:5000/follow/" + uid + "/" + id)
       .then((res) => {
@@ -139,7 +151,11 @@ const UserProfile = () => {
                   }
                 }}
               >
-                {follow === 1 ? 'Follow back' : follow === 0 ? 'Follow' : 'Following'}
+                {follow === 1
+                  ? "Follow back"
+                  : follow === 0
+                  ? "Follow"
+                  : "Following"}
               </Button>
               <Link to={"/user/chats/" + message}>
                 <Button sx={{ marginLeft: "30px" }} variant="contained">

@@ -1,8 +1,15 @@
 import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Switch } from "@mui/material";
 import React from "react";
 import { AccountBox, Article, Groups, Home, ModeNight, Person, Settings } from "@mui/icons-material";
+import SearchIcon from '@mui/icons-material/Search';
+import { Link } from "react-router-dom";
+import styled from "@emotion/styled";
 
 const Sidebar = ({mode,setMode}) => {
+  const CustomLink = styled(Link)`
+  color: inherit;
+  text-decoration: none;
+`;
   return (
     <Box
       
@@ -14,52 +21,54 @@ const Sidebar = ({mode,setMode}) => {
 
       <List >
           <ListItem disablePadding>
+          <CustomLink to={"/user"}>
             <ListItemButton component="a" href="#home">
               <ListItemIcon>
                <Home/>
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
+            </CustomLink>
           </ListItem>
           <ListItem disablePadding>
+            <CustomLink to={"/user/search"}>
             <ListItemButton component="a" href="#home">
               <ListItemIcon>
-               <Article/>
+               <SearchIcon/>
               </ListItemIcon>
-              <ListItemText primary="Feeds" />
+              <ListItemText primary="Explore" />
             </ListItemButton>
+            </CustomLink>
           </ListItem>
           <ListItem disablePadding>
+          <CustomLink to={"/user/search"}>
             <ListItemButton component="a" href="#home">
               <ListItemIcon>
                <Groups/>
               </ListItemIcon>
               <ListItemText primary="Chats" />
             </ListItemButton>
+            </CustomLink>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component="a" href="#home">
-              <ListItemIcon>
-              <Person/>
-              </ListItemIcon>
-              <ListItemText primary="Friends" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
+          <CustomLink to={"/user/settings"}>
             <ListItemButton component="a" href="#home">
               <ListItemIcon>
                <Settings/>
               </ListItemIcon>
               <ListItemText primary="Settings" />
             </ListItemButton>
+            </CustomLink>
           </ListItem>
           <ListItem disablePadding>
+          <CustomLink to={"/user/myprofile"}>
             <ListItemButton component="a" href="#home">
               <ListItemIcon>
                <AccountBox/>
               </ListItemIcon>
-              <ListItemText primary="Profile" />
+              <ListItemText primary="My Profile" />
             </ListItemButton>
+            </CustomLink>
           </ListItem>
           <ListItem disablePadding>
             <ListItemButton component="a" href="#home">
