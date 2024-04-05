@@ -1,4 +1,11 @@
-import { Avatar, Box, Button, Divider, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -19,13 +26,12 @@ const MyProfile = () => {
     });
     axios.get("http://localhost:5000/user/totalposts/" + uid).then((res) => {
       console.log(res.data);
-      setTpost(res.data.totalPosts)
+      setTpost(res.data.totalPosts);
     });
   };
 
-
   const fetchPost = () => {
-    axios.get("http://localhost:5000/postsSingleUser/"+uid).then((res) => {
+    axios.get("http://localhost:5000/postsSingleUser/" + uid).then((res) => {
       console.log(res.data);
       setPOst(res.data);
     });
@@ -66,7 +72,7 @@ const MyProfile = () => {
               </Typography>
               <Button sx={{ marginLeft: "30px" }} variant="contained">
                 <Link
-                  to="/user/editprofile"
+                  to="/settings/editprofile"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
                   Edit Profile
@@ -75,13 +81,21 @@ const MyProfile = () => {
               <Button sx={{ marginLeft: "30px" }} variant="contained">
                 Tools
               </Button>
-              <SettingsIcon
-                sx={{ paddingLeft: "25px", width: "50px", height: "30px" }}
-              />
+              <Link 
+              to="/settings"
+              style={{ textDecoration: "none", color: "inherit" }}>
+                <SettingsIcon
+                  sx={{ paddingLeft: "25px", width: "50px", height: "30px" }}
+                />
+              </Link>
             </Box>
             <Box display={"flex"} paddingTop={"30px"}>
               <Typography variant="h6">
-                <span style={{ fontWeight: "bold" }}> {tpost?tpost:0} </span> Posts
+                <span style={{ fontWeight: "bold" }}>
+                  {" "}
+                  {tpost ? tpost : 0}{" "}
+                </span>{" "}
+                Posts
               </Typography>
               <Typography variant="h6" sx={{ paddingLeft: "30px" }}>
                 <span style={{ fontWeight: "bold" }}> 1050 </span>Followers
@@ -187,10 +201,10 @@ const MyProfile = () => {
       </Box>
       <Divider sx={{ paddingTop: "50px" }} />
       <Box>
-      {posts.map((post) => (
-        <Post data= {post} fetchPost={fetchPost}/>
-      ))}
-    </Box>
+        {posts.map((post) => (
+          <Post data={post} fetchPost={fetchPost} />
+        ))}
+      </Box>
     </div>
   );
 };

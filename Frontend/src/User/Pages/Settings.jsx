@@ -1,9 +1,19 @@
 import styled from "@emotion/styled";
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Switch } from "@mui/material";
-import { AccountBox, Groups, Home, ModeNight, Person } from "@mui/icons-material";
+import { Home } from "@mui/icons-material";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+} from "@mui/material";
 import React from "react";
-import { Link } from "react-router-dom";
-import SearchIcon from '@mui/icons-material/Search';
+import { Link, Route, Routes } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Editprofile from "./Editprofile";
+import Changepassword from "./Changepassword";
 
 const Settings = () => {
   const CustomLink = styled(Link)`
@@ -11,65 +21,57 @@ const Settings = () => {
     text-decoration: none;
   `;
   return (
-    <Box display={"flex"}>
-      <Box flex={1} borderRight=".1px solid grey" height={1000}>
-        <Box position="fixed">
-          <List>
-            <ListItem disablePadding>
-              <CustomLink to={"/user"}>
-                <ListItemButton component="a" href="#home">
-                  <ListItemIcon>
-                    <Home />
-                  </ListItemIcon>
-                  <ListItemText primary="Home" />
-                </ListItemButton>
-              </CustomLink>
-            </ListItem>
-            <ListItem disablePadding>
-              <CustomLink to={"/user/search"}>
-                <ListItemButton component="a" href="#home">
-                  <ListItemIcon>
-                    <SearchIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Explore" />
-                </ListItemButton>
-              </CustomLink>
-            </ListItem>
-            <ListItem disablePadding>
-              <CustomLink to={"/user/search"}>
-                <ListItemButton component="a" href="#home">
-                  <ListItemIcon>
-                    <Groups />
-                  </ListItemIcon>
-                  <ListItemText primary="Chats" />
-                </ListItemButton>
-              </CustomLink>
-            </ListItem>
-            <ListItem disablePadding>
-              <CustomLink to={"/user/settings"}>
-                <ListItemButton component="a" href="#home">
-                  <ListItemIcon>
-                    <Settings />
-                  </ListItemIcon>
-                  <ListItemText primary="Settings" />
-                </ListItemButton>
-              </CustomLink>
-            </ListItem>
-            <ListItem disablePadding>
-              <CustomLink to={"/user/myprofile"}>
-                <ListItemButton component="a" href="#home">
-                  <ListItemIcon>
-                    <AccountBox />
-                  </ListItemIcon>
-                  <ListItemText primary="My Profile" />
-                </ListItemButton>
-              </CustomLink>
-            </ListItem>
-        
-          </List>
+    <Box bgcolor={"background.default"} color={"text.primary"}>
+      <Navbar />
+
+      <Box display={"flex"}>
+        <Box flex={1} borderRight=".1px solid grey" height={1000}>
+          <Box position="fixed">
+            <List>
+              <ListItem disablePadding>
+                <CustomLink to={"/settings/editprofile"}>
+                  <ListItemButton
+                    component="a"
+                    href="#home"
+                    style={{ width: "400px" }}
+                  >
+                    <ListItemText primary="Edit Profile" />
+                  </ListItemButton>
+                </CustomLink>
+              </ListItem>
+              <ListItem disablePadding>
+                <CustomLink to={"/settings/changepassword"}>
+                  <ListItemButton
+                    component="a"
+                    href="#home"
+                    style={{ width: "400px" }}
+                  >
+                    <ListItemText primary="Change Password" />
+                  </ListItemButton>
+                </CustomLink>
+              </ListItem>
+              <ListItem disablePadding>
+                <CustomLink to={"/user"}>
+                  <ListItemButton
+                    component="a"
+                    href="#home"
+                    style={{ width: "400px" }}
+                  >
+                    <ListItemText primary="Home" />
+                  </ListItemButton>
+                </CustomLink>
+              </ListItem>
+            </List>
+          </Box>
+        </Box>
+        <Box flex={3}>
+          <Routes>
+            <Route path="/" element={<Editprofile />} />
+            <Route path="/editprofile" element={<Editprofile />} />
+            <Route path="/changepassword" element={<Changepassword />} />
+          </Routes>
         </Box>
       </Box>
-      <Box flex={3}>center</Box>
     </Box>
   );
 };

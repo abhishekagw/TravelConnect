@@ -14,7 +14,6 @@ import FollowingAlert from "./Pages/FollowingAlert";
 import Search from "./Pages/Search";
 import Chats from "./components/Chat/Chats";
 import RightChatBar from "./components/RightChatBar";
-import Settings from "./Pages/Settings";
 
 function App() {
   const [mode, setMode] = useState("light");
@@ -34,14 +33,11 @@ function App() {
           <Box flex={4} p={2}>
             <Routes>
               <Route path="/" element={<Feed />} />
-              <Route path="/editprofile" element={<Editprofile />} />
-              <Route path="/changepassword" element={<Changepassword />} />
               <Route path="/myprofile" element={<MyProfile />} />
               <Route path="/userprofile/:id" element={<UserProfile />} />
               <Route path="/followingalert" element={<FollowingAlert />} />
               <Route path="/search" element={<Search />} />
               <Route path="/chats/:id" element={<Chats />} />
-              <Route path="/settings" element={<Settings />} />
             </Routes>
           </Box>
 

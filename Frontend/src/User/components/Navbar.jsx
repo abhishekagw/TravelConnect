@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { Mail, Notifications, Pets } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import FollowingAlert from "../Pages/FollowingAlert";
 
@@ -56,6 +56,10 @@ const Navbar = () => {
   const [opens, setOpens] = useState(false);
   const [placement, setPlacement] = useState();
   const [followAlert, setFollowAlert] = useState([]);
+  const CustomLink = styled(Link)`
+    color: inherit;
+    text-decoration: none;
+  `;
 
   const uid = sessionStorage.getItem("uid");
 
@@ -66,7 +70,7 @@ const Navbar = () => {
   };
   const logOut = () => {
     sessionStorage.clear();
-    navigate("../../guest/login");
+    navigate("../../");
   };
 
   useEffect(() => {
@@ -129,8 +133,13 @@ const Navbar = () => {
         }}
       >
         <MenuItem>{name}</MenuItem>
-        <MenuItem>Profile</MenuItem>
-        <MenuItem>My account</MenuItem>
+        <CustomLink to={"/user/myprofile"}>
+          <MenuItem>My Profile</MenuItem>
+        </CustomLink>
+        <CustomLink to={"/settings"}>
+          <MenuItem>Settings</MenuItem>
+        </CustomLink>
+
         <MenuItem onClick={logOut}>Logout</MenuItem>
       </Menu>
       <Popper
@@ -145,9 +154,11 @@ const Navbar = () => {
           <Fade {...TransitionProps} timeout={350}>
             <Paper>
               <Typography sx={{ p: 1 }}>
-                {followAlert?(followAlert.map((alerts) => (
-                  <FollowingAlert datas={alerts} fetchData={fetchData} />
-                ))):("Nothing To Show")}
+                {followAlert
+                  ? followAlert.map((alerts) => (
+                      <FollowingAlert datas={alerts} fetchData={fetchData} />
+                    ))
+                  : "Nothing To Show"}
               </Typography>
             </Paper>
           </Fade>

@@ -51,7 +51,7 @@ const Sidebar = ({mode,setMode}) => {
             </CustomLink>
           </ListItem>
           <ListItem disablePadding>
-          <CustomLink to={"/user/settings"}>
+          <CustomLink to={"/settings"}>
             <ListItemButton component="a" href="#home">
               <ListItemIcon>
                <Settings/>

@@ -18,7 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
@@ -34,6 +34,8 @@ const Search = () => {
   const [result, setResult] = useState([]);
   const [Tempresult, setTempResult] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [itemData, setItemData] = useState([]);
+  const inputRef = useRef(null);
 
   const fetchData = () => {
     axios.get("http://localhost:5000/user").then((response) => {
@@ -42,6 +44,7 @@ const Search = () => {
       setTempResult(response.data);
     });
   };
+
   const handleSearch = (event) => {
     handleOpen(event);
     const searchKeyword = event.target.value.toLowerCase(); // Convert to lowercase for case-insensitive search
@@ -56,9 +59,36 @@ const Search = () => {
     }
   };
 
+  const fetchPosts = () => {
+    axios.get("http://localhost:5000/posts").then((response) => {
+      console.log(response.data);
+      setItemData(response.data);
+    });
+  };
+
+  const handleCancel = () => {
+    setSearch("")
+    inputRef.current.value = ''; // Resetting the input field directly
+    
+  };
+
+
   useEffect(() => {
     fetchData();
+    fetchPosts();
   }, []);
+
+  const componentDidMount = () => {
+    const videoElements = document.querySelectorAll("video");
+    videoElements.forEach((videoElement) => {
+      videoElement.addEventListener("mouseenter", () => {
+        videoElement.play();
+      });
+      videoElement.addEventListener("mouseleave", () => {
+        videoElement.pause();
+      });
+    });
+  };
 
   //popper
   const handleOpen = (event) => {
@@ -74,6 +104,7 @@ const Search = () => {
           <Box display="flex" alignItems="center">
             <FormControl fullWidth variant="outlined">
               <OutlinedInput
+                inputRef={inputRef}
                 id="outlined-adornment-password"
                 type="text"
                 placeholder="Search Here"
@@ -92,11 +123,17 @@ const Search = () => {
                 }
               />
             </FormControl>
-            <Typography sx={{ p: "10px", fontWeight: 700 }}>Cancel</Typography>
+            <IconButton
+              onClick={handleCancel}
+            >
+              <Typography sx={{ p: "10px", fontWeight: 700 }}>
+                Cancel
+              </Typography>
+            </IconButton>
           </Box>
 
           <Popper id={id} open={open} anchorEl={anchorEl}>
-            <Box sx={{ border:'.5px', bgcolor: "#FAFAFA" }}>
+            <Box sx={{ border: ".5px", bgcolor: "#FAFAFA" }}>
               <Box margin={"10px"} ml={"25px"}>
                 <List sx={{ width: "600px" }}>
                   {result.map((user) => (
@@ -131,19 +168,39 @@ const Search = () => {
           </Popper>
 
           <ImageList
-            sx={{ width: 1100, height: 550 }}
+            sx={{ width: 950, height: 400 }}
             variant="quilted"
             cols={4}
             rowHeight={121}
           >
-            {itemData.map((item) => (
-              <ImageListItem
-                key={item.img}
-                cols={item.cols || 1}
-                rows={item.rows || 1}
-              >
-                <img src={item.img} alt={item.title} loading="lazy" />
-              </ImageListItem>
+            {itemData.map((item, key) => (
+              <Box key={key}>
+                {item.posts[0].postType === "image" ? (
+                  <ImageListItem
+                    key={item.img}
+                    cols={item.cols || 1}
+                    rows={item.rows || 1}
+                  >
+                    {console.log(item.posts[0].postFile)}
+                    <img
+                      src={item.posts[0].postFile}
+                      alt={item.title}
+                      loading="lazy"
+                    />
+                  </ImageListItem>
+                ) : (
+                  <video
+                    // Adding autoplay attribute for automatic playback
+                    muted // Adding muted attribute to mute the video by default
+                    width="100%" // Setting width to 100% of the container
+                    height="120px" // Setting height to auto to maintain aspect ratio
+                    id={`videoElement_${key}`}
+                    onMouseEnter={componentDidMount}
+                  >
+                    <source src={item.posts[0].postFile} type="video/mp4" />
+                  </video>
+                )}
+              </Box>
             ))}
           </ImageList>
         </Box>
@@ -152,65 +209,65 @@ const Search = () => {
   );
 };
 
-const itemData = [
-  {
-    img: "https://images.unsplash.com/photo-1551963831-b3b1ca40c98e",
-    title: "Breakfast",
-    rows: 2,
-    cols: 2,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-    title: "Burger",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
-    title: "Camera",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c",
-    title: "Coffee",
-    cols: 2,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1533827432537-70133748f5c8",
-    title: "Hats",
-    cols: 2,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62",
-    title: "Honey",
-    author: "@arwinneil",
-    rows: 2,
-    cols: 2,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1516802273409-68526ee1bdd6",
-    title: "Basketball",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1518756131217-31eb79b20e8f",
-    title: "Fern",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1597645587822-e99fa5d45d25",
-    title: "Mushrooms",
-    rows: 2,
-    cols: 2,
-  },
-  {
-    img: "https://images.unsplash.com/photo-1567306301408-9b74779a11af",
-    title: "Tomato basil",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1471357674240-e1a485acb3e1",
-    title: "Sea star",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1589118949245-7d38baf380d6",
-    title: "Bike",
-    cols: 2,
-  },
-];
+// const itemData = [
+//   {
+//     img: "https://images.unsplash.com/photo-1551963831-b3b1ca40c98e",
+//     title: "Breakfast",
+//     rows: 2,
+//     cols: 2,
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
+//     title: "Burger",
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
+//     title: "Camera",
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c",
+//     title: "Coffee",
+//     cols: 2,
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1533827432537-70133748f5c8",
+//     title: "Hats",
+//     cols: 2,
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62",
+//     title: "Honey",
+//     author: "@arwinneil",
+//     rows: 2,
+//     cols: 2,
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1516802273409-68526ee1bdd6",
+//     title: "Basketball",
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1518756131217-31eb79b20e8f",
+//     title: "Fern",
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1597645587822-e99fa5d45d25",
+//     title: "Mushrooms",
+//     rows: 2,
+//     cols: 2,
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1567306301408-9b74779a11af",
+//     title: "Tomato basil",
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1471357674240-e1a485acb3e1",
+//     title: "Sea star",
+//   },
+//   {
+//     img: "https://images.unsplash.com/photo-1589118949245-7d38baf380d6",
+//     title: "Bike",
+//     cols: 2,
+//   },
+// ];
 
 export default Search;
