@@ -1409,7 +1409,7 @@ app.delete("/hashtag/:id", async (req, res) => {
 const followlistSchemaStructure = new mongoose.Schema({
   followStatus: {
     type: String,
-    default: 0,
+    default: 1,
   },
   userTo: {
     type: mongoose.Schema.Types.ObjectId,
@@ -1556,7 +1556,7 @@ app.get("/FollowStatus/:uid/:id", async (req, res) => {
     console.error("Error", err);
   }
 });
-//Follow  Status Update
+//Follow  Status Update to 1
 
 app.put("/FollowStatus/:id", async (req, res) => {
   try {
@@ -1572,7 +1572,7 @@ app.put("/FollowStatus/:id", async (req, res) => {
   }
 });
 
-//Follower Delete
+//Unfollow-update status to 0
 
 app.delete("/follow/:id/:userid", async (req, res) => {
   try {

@@ -14,6 +14,7 @@ const UserProfile = () => {
   const [followCount, setFollowCount] = useState(0);
   const [message, setMessage] = useState([]);
   const uid = sessionStorage.getItem("uid");
+  const [followCheck,setFollowCheck]=useState([])
 
   const { id } = useParams();
 
@@ -37,19 +38,19 @@ const UserProfile = () => {
         console.log(tempData);
 
         if (tempData.followStatus) {
-          if (tempData.followStatus == 0) {
+          if (tempData.followStatus == 1) {
             if (tempData.userFrom === uid) {
-              setFollow("2");
+              setFollow("2"); //following
             } else {
-              setFollow("1");
+              setFollow("1");  //followback
             }
             setMessage(tempData._id);
-          } else if (tempData.followStatus == 1) {
-            setFollow("2");
+          } else if (tempData.followStatus == 2) {
+            setFollow("2"); //following
             setMessage(tempData._id);
             console.log(tempData.followStatus);
           } else {
-            setFollow("0");
+            setFollow("0"); //follow
           }
         } else if (tempData.followStatus == "false") {
           setFollow("0");
@@ -65,16 +66,32 @@ const UserProfile = () => {
   };
 
   const handleFollow = () => {
-    const data = {
-      userFrom: uid,
-      userTo: id,
-    };
-    axios.post("http://localhost:5000/follow", data).then((res) => {
-      console.log(res.data);
 
-      fetchData();
-      countFollow();
-    });
+    axios.get("http://localhost:5000/FollowStatus/" + uid + "/" + id).then((response)=>{
+              setFollowCheck(response.data)
+    })
+
+    if(followCheck){
+      axios.put("http://localhost:5000//FollowStatus/"+followCheck._id).then((res) => {
+        console.log('again followed')
+        fetchData();
+        countFollow();
+      });
+
+    }else{
+      const datas = {
+        userFrom: uid,
+        userTo: id,
+      };
+      axios.post("http://localhost:5000/follow", datas).then((res) => {
+        console.log(res.data);
+  
+        fetchData();
+        countFollow();
+      });
+
+    }
+
   };
 
   const handleFollowBack = () => {
