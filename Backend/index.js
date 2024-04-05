@@ -1548,7 +1548,7 @@ app.get("/FollowStatus/:uid/:id", async (req, res) => {
       ],
     });
     if (followStatus) {
-      res.json({ followStatus });
+      res.json( followStatus );
     } else {
       res.json({ followStatus: false });
     }

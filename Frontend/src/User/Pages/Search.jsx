@@ -35,7 +35,7 @@ const Search = () => {
   const [Tempresult, setTempResult] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [itemData, setItemData] = useState([]);
-  const inputRef = useRef(null);
+  
 
   const fetchData = () => {
     axios.get("http://localhost:5000/user").then((response) => {
@@ -68,7 +68,7 @@ const Search = () => {
 
   const handleCancel = () => {
     setSearch("")
-    inputRef.current.value = ''; // Resetting the input field directly
+    
     
   };
 
@@ -104,7 +104,6 @@ const Search = () => {
           <Box display="flex" alignItems="center">
             <FormControl fullWidth variant="outlined">
               <OutlinedInput
-                inputRef={inputRef}
                 id="outlined-adornment-password"
                 type="text"
                 placeholder="Search Here"

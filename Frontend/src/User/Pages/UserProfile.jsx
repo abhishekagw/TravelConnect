@@ -9,7 +9,7 @@ const UserProfile = () => {
   const [data, setData] = useState("");
   const [tpost, setTpost] = useState("");
   const [posts, setPOst] = useState([]);
-  const [follow, setFollow] = useState(0);
+  const [follow, setFollow] = useState("");
   const [followlist, setfollowlist] = useState([]);
   const [followCount, setFollowCount] = useState(0);
   const [message, setMessage] = useState([]);
@@ -30,22 +30,29 @@ const UserProfile = () => {
     axios
       .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
       .then((response) => {
-        setfollowlist(response.data.followStatus);
-        console.log("follow status-" + followlist.followStatus);
-        if (followlist.followStatus == 0) {
-          if (followlist.userFrom === uid) {
-            setFollow(2);
+        setfollowlist(response.data);
+        const tempData = response.data;
+        setFollow(tempData.followStatus);
+        console.log("follow status -" + tempData.followStatus);
+        console.log(tempData);
+
+        if (tempData.followStatus) {
+          if (tempData.followStatus == 0) {
+            if (tempData.userFrom === uid) {
+              setFollow("2");
+            } else {
+              setFollow("1");
+            }
+            setMessage(tempData._id);
+          } else if (tempData.followStatus == 1) {
+            setFollow("2");
+            setMessage(tempData._id);
+            console.log(tempData.followStatus);
           } else {
-            setFollow(1);
+            setFollow("0");
           }
-          setMessage(response.data.followStatus._id);
-          console.log(response.data.followStatus.followStatus);
-        } else if (response.data.followStatus.followStatus == 1) {
-          setFollow(2);
-          setMessage(response.data.followStatus._id);
-          console.log(response.data.followStatus.followStatus);
-        } else {
-          setFollow(0);
+        } else if (tempData.followStatus == "false") {
+          setFollow("0");
         }
       });
   };
@@ -71,9 +78,9 @@ const UserProfile = () => {
   };
 
   const handleFollowBack = () => {
-    console.log("followback");
+    console.log("follow state " + follow);
+    fetchData();
     if (followlist.userFrom === uid) {
-      
     }
     axios
       .put("http://localhost:5000/FollowStatus/" + message)
@@ -142,18 +149,18 @@ const UserProfile = () => {
                 sx={{ marginLeft: "30px" }}
                 variant="contained"
                 onClick={() => {
-                  if (follow === 1) {
+                  if (follow == "1") {
                     handleFollowBack();
-                  } else if (follow === 0) {
+                  } else if (follow == "0") {
                     handleFollow();
-                  } else if (follow === 2) {
+                  } else if (follow == "2") {
                     handleUnfollow();
                   }
                 }}
               >
-                {follow === 1
+                {follow == "1"
                   ? "Follow back"
-                  : follow === 0
+                  : follow == "0"
                   ? "Follow"
                   : "Following"}
               </Button>
