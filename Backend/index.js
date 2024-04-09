@@ -1293,17 +1293,16 @@ app.get("/chat", async (req, res) => {
 
 app.get("/Chat/:ChatlistId", async (req, res) => {
   try {
-    const ChatListId = new mongoose.Types.ObjectId(req.params.ChatlistId)
+    const ChatListId = new mongoose.Types.ObjectId(req.params.ChatlistId);
 
     const chats = await Chat.aggregate([
       {
         $match: {
-          chatListId: ChatListId
-        }
+          chatListId: ChatListId,
+        },
       },
-
     ]);
-    res.json({chats});
+    res.json({ chats });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
@@ -1510,7 +1509,7 @@ app.get("/followlist/:Lid/:Uid", async (req, res) => {
       return res.json({ message: "Other user data not found" });
     } else {
       console.log(otherUser);
-       res.json({otherUser:otherUser[0]});
+      res.json({ otherUser: otherUser[0] });
     }
   } catch (error) {
     console.error("Error retrieving other user data:", error);
@@ -1548,7 +1547,7 @@ app.get("/FollowStatus/:uid/:id", async (req, res) => {
       ],
     });
     if (followStatus) {
-      res.json( followStatus );
+      res.json(followStatus);
     } else {
       res.json({ followStatus: false });
     }
@@ -1556,14 +1555,15 @@ app.get("/FollowStatus/:uid/:id", async (req, res) => {
     console.error("Error", err);
   }
 });
-//Follow  Status Update to 1
+//Follow  again, Unfollow ,Both Follow
 
 app.put("/FollowStatus/:id", async (req, res) => {
   try {
     const id = req.params.id;
+    const {status} = req.body;
     const followStatus = await Followlist.findByIdAndUpdate(
       id,
-      { followStatus: 1 },
+      { followStatus: status },
       { new: true }
     );
     res.json(followStatus);
@@ -1572,23 +1572,7 @@ app.put("/FollowStatus/:id", async (req, res) => {
   }
 });
 
-//Unfollow-update status to 0
 
-app.delete("/follow/:id/:userid", async (req, res) => {
-  try {
-    const userFrom = req.params.id;
-    const userTo = req.params.userid;
-    const deletedfollower = await Followlist.deleteOne({ userFrom, userTo });
-    if (!deletedfollower) {
-      res.send("No Data with this ID");
-    } else {
-      res.json({ msg: "Deleted Succesfully", deletedfollower });
-    }
-  } catch (err) {
-    console.error("Error", err);
-    res.status(500).json({ msg: "Server Error" });
-  }
-});
 
 //Follow Count
 
@@ -1635,19 +1619,18 @@ app.post("/login", async (req, res) => {
 //Socket IO Chat
 
 io.on("connection", (socket) => {
-
   socket.on("createRoomFromClient", ({ id }) => {
-    const roomKey = id
+    const roomKey = id;
     socket.join(roomKey);
-  })
+  });
 
   socket.on("typing-started", ({ id }) => {
-    socket.broadcast.to(id).emit("typing-started-from-server")
-  })
+    socket.broadcast.to(id).emit("typing-started-from-server");
+  });
 
   socket.on("typing-stopped", ({ id }) => {
-    socket.broadcast.to(id).emit("typing-stopped-from-server")
-  })
+    socket.broadcast.to(id).emit("typing-stopped-from-server");
+  });
 
   socket.on(
     "toServer-sendMessage",
@@ -1665,7 +1648,7 @@ io.on("connection", (socket) => {
         socket.broadcast.to(Id).emit("toServer-sendMessage", chatDoc);
       } catch (err) {
         console.error(err.message);
-       console.log("Server error");
+        console.log("Server error");
       }
     }
   );

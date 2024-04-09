@@ -14,7 +14,7 @@ const UserProfile = () => {
   const [followCount, setFollowCount] = useState(0);
   const [message, setMessage] = useState([]);
   const uid = sessionStorage.getItem("uid");
-  const [followCheck,setFollowCheck]=useState([])
+  const [followCheck, setFollowCheck] = useState([]);
 
   const { id } = useParams();
 
@@ -42,13 +42,25 @@ const UserProfile = () => {
             if (tempData.userFrom === uid) {
               setFollow("2"); //following
             } else {
-              setFollow("1");  //followback
+              setFollow("1"); //followback
             }
             setMessage(tempData._id);
           } else if (tempData.followStatus == 2) {
             setFollow("2"); //following
             setMessage(tempData._id);
             console.log(tempData.followStatus);
+          } else if (tempData.followStatus == 3) {
+            if (tempData.userFrom === uid) {
+              setFollow("1"); //followback
+            } else {
+              setFollow("2"); //following
+            }
+          } else if (tempData.followStatus == 4) {
+            if (tempData.userFrom === uid) {
+              setFollow("2"); //following
+            } else {
+              setFollow("1"); //followback
+            }
           } else {
             setFollow("0"); //follow
           }
@@ -66,60 +78,119 @@ const UserProfile = () => {
   };
 
   const handleFollow = () => {
-
-    axios.get("http://localhost:5000/FollowStatus/" + uid + "/" + id).then((response)=>{
-              setFollowCheck(response.data)
-    })
-
-    if(followCheck){
-      axios.put("http://localhost:5000//FollowStatus/"+followCheck._id).then((res) => {
-        console.log('again followed')
-        fetchData();
-        countFollow();
+    axios
+      .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
+      .then((response) => {
+        setFollowCheck(response.data);
       });
 
-    }else{
+    if (followCheck) {
+      const data = {
+        status: 1,
+      };
+      axios
+        .put("http://localhost:5000/FollowStatus/" + followCheck._id, data)
+        .then((res) => {
+          console.log(res.data);
+          fetchData();
+          countFollow();
+        });
+    } else {
       const datas = {
         userFrom: uid,
         userTo: id,
       };
       axios.post("http://localhost:5000/follow", datas).then((res) => {
         console.log(res.data);
-  
+
         fetchData();
         countFollow();
       });
-
     }
-
   };
 
   const handleFollowBack = () => {
     console.log("follow state " + follow);
     fetchData();
-    if (followlist.userFrom === uid) {
+    if (followlist.userFrom == uid && followlist.followStatus == 1) {
+      const data = {
+        status: 2,
+      };
+      axios
+        .put("http://localhost:5000/FollowStatus/" + message, data)
+        .then((res) => {
+          console.log(res.data);
+          setMessage("");
+          fetchData();
+          countFollow();
+        });
+    } else if (followlist.userTo == uid && followlist.followStatus == 1) {
+      const data = {
+        status: 2,
+      };
+      axios
+        .put("http://localhost:5000/FollowStatus/" + message, data)
+        .then((res) => {
+          console.log(res.data);
+          setMessage("");
+          fetchData();
+          countFollow();
+        });
+    } else if (followlist.followStatus == 4 || followlist.followStatus == 3) {
+      const datas = {
+        status: 2,
+      };
+      axios
+        .put("http://localhost:5000/FollowStatus/" + followlist._id, datas)
+        .then((res) => {
+          console.log(res.data);
+          setMessage("");
+          fetchData();
+          countFollow();
+        });
     }
-    axios
-      .put("http://localhost:5000/FollowStatus/" + message)
-      .then((response) => {
-        console.log(response.data);
-        fetchData();
-      });
   };
 
   const handleUnfollow = () => {
     console.log("unfollow");
-
-    axios
-      .delete("http://localhost:5000/follow/" + uid + "/" + id)
-      .then((res) => {
-        console.log(res.data);
-
-        setMessage("");
-
-        fetchData();
-        countFollow();
-      });
+    fetchData();
+    if (followlist.userFrom == uid && followlist.followStatus == 2) {
+      const data = {
+        status: 3,
+      };
+      axios
+        .put("http://localhost:5000/FollowStatus/" + message, data)
+        .then((res) => {
+          console.log(res.data);
+          setMessage("");
+          fetchData();
+          countFollow();
+        });
+    } else if (followlist.userTo == uid && followlist.followStatus == 2) {
+      const data = {
+        status: 4,
+      };
+      axios
+        .put("http://localhost:5000/FollowStatus/" + message, data)
+        .then((res) => {
+          console.log(res.data);
+          setMessage("");
+          fetchData();
+          countFollow();
+        });
+    } else if (followlist.followStatus == 4 || followlist.followStatus == 3 || followlist.followStatus == 1) {
+      const datas = {
+        status: 0,
+      };
+      axios
+        .put("http://localhost:5000/FollowStatus/" + followlist._id, datas)
+        .then((res) => {
+          console.log(res.data);
+          setMessage("");
+          fetchData();
+          countFollow();
+        });
+    }
   };
 
   const countFollow = () => {
