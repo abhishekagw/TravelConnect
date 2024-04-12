@@ -104,7 +104,7 @@ const Login = () => {
             </Grid>
           </Typography>
           <Typography align="center">
-            Dont Have An Account ? <Link href="#">Sign Up</Link>
+            Dont Have An Account ? <Link to='/Signup' >Sign Up</Link>
           </Typography>
         </Grid>
       </Paper>

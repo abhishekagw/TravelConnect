@@ -167,7 +167,7 @@ const Search = () => {
           </Popper>
 
           <ImageList
-            sx={{ width: 950, height: 400 }}
+            sx={{ width: 950, height: 500 }}
             variant="quilted"
             cols={4}
             rowHeight={121}
