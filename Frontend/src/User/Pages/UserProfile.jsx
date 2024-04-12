@@ -9,7 +9,7 @@ const UserProfile = () => {
   const [data, setData] = useState("");
   const [tpost, setTpost] = useState("");
   const [posts, setPOst] = useState([]);
-  const [follow, setFollow] = useState("");
+  const [follow, setFollow] = useState("0");
   const [followlist, setfollowlist] = useState([]);
   const [followCount, setFollowCount] = useState(0);
   const [message, setMessage] = useState([]);
@@ -76,26 +76,33 @@ const UserProfile = () => {
       setPOst(res.data);
     });
   };
-
-  const handleFollow = () => {
-    axios
-      .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
-      .then((response) => {
-        setFollowCheck(response.data);
-      });
-
+  useEffect(() => {
     if (followCheck) {
       const data = {
         status: 1,
+        userFrom: uid,
+        userTo: id,
       };
       axios
-        .put("http://localhost:5000/FollowStatus/" + followCheck._id, data)
+        .put("http://localhost:5000/Followagain/" + followCheck._id, data)
         .then((res) => {
           console.log(res.data);
           fetchData();
           countFollow();
         });
-    } else {
+    }
+  }, [followCheck, uid, id]);
+
+  const handleFollow = () => {
+    console.log("handle follow " + follow);
+    axios
+    .get("http://localhost:5000/FollowStatus/" + uid + "/" + id)
+    .then((response) => {
+      setFollowCheck(response.data);
+    });
+    console.log("handle followcheck " + followCheck);
+
+    if (!followCheck) {
       const datas = {
         userFrom: uid,
         userTo: id,
@@ -110,7 +117,7 @@ const UserProfile = () => {
   };
 
   const handleFollowBack = () => {
-    console.log("follow state " + follow);
+    console.log("follow back " + follow);
     fetchData();
     if (followlist.userFrom == uid && followlist.followStatus == 1) {
       const data = {
@@ -152,7 +159,7 @@ const UserProfile = () => {
   };
 
   const handleUnfollow = () => {
-    console.log("unfollow");
+    console.log("unfollow "+follow);
     fetchData();
     if (followlist.userFrom == uid && followlist.followStatus == 2) {
       const data = {

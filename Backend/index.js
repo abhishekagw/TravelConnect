@@ -1555,7 +1555,7 @@ app.get("/FollowStatus/:uid/:id", async (req, res) => {
     console.error("Error", err);
   }
 });
-//Follow  again, Unfollow ,Both Follow
+//Unfollow ,Both Follow
 
 app.put("/FollowStatus/:id", async (req, res) => {
   try {
@@ -1564,6 +1564,23 @@ app.put("/FollowStatus/:id", async (req, res) => {
     const followStatus = await Followlist.findByIdAndUpdate(
       id,
       { followStatus: status },
+      { new: true }
+    );
+    res.json(followStatus);
+  } catch (err) {
+    console.error("Error", err);
+  }
+});
+
+//Follow  again
+
+app.put("/Followagain/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const {status,userFrom,userTo} = req.body;
+    const followStatus = await Followlist.findByIdAndUpdate(
+      id,
+      { followStatus: status, userFrom: userFrom, userTo: userTo },
       { new: true }
     );
     res.json(followStatus);
