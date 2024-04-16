@@ -10,12 +10,13 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const paperStyle = {
     padding: "30px 20px",
     width: 300,
@@ -33,30 +34,43 @@ const Login = () => {
       password: password,
     };
 
-    axios.post("http://localhost:5000/login", data).then((response) => {
-      console.log(response.data);
-      const {id, login} = response.data
-      if(login === 'Admin'){
-        sessionStorage.setItem('aid',id)
-        navigate("../../Admin")
+    const succes = inputValidation(data);
+    if (!succes) return;
 
-      }
-      else if(login === 'User'){
-        sessionStorage.setItem('uid',id)
-        navigate("../../User")
-      }
-      else{
+    try {
+      axios.post("http://localhost:5000/login", data).then((response) => {
         
-      }
-    });
+        const { id, login } = response.data;
+        if (login === "Admin") {
+          sessionStorage.setItem("aid", id);
+          navigate("../../Admin");
+        } else if (login === "User") {
+          sessionStorage.setItem("uid", id);
+          navigate("../../User");
+        }
+        if (response.data.error){
+          toast.error(response.data.error);
+        }
+      });
+    } catch (error) {
+      toast.error(error.message);
+    }
 
     setUser("");
     setPassword("");
   };
 
+  const inputValidation = ({ email, password }) => {
+    if (!email || !password) {
+      toast.error("Please Fill in All Fields");
+      return false;
+    }
+    return true
+  };
+
   const textStyle = { paddingTop: "20px", paddingBottom: "10px" };
   return (
-    <Grid>
+    <Grid marginTop={"100px"}>
       <Paper
         elevation={5}
         sx={paperStyle}
@@ -104,7 +118,7 @@ const Login = () => {
             </Grid>
           </Typography>
           <Typography align="center">
-            Dont Have An Account ? <Link to='/Signup' >Sign Up</Link>
+            Dont Have An Account ? <Link href="/register">Sign Up</Link>
           </Typography>
         </Grid>
       </Paper>

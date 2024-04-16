@@ -10,12 +10,21 @@ import {
   Stack,
 } from "@mui/material";
 import React from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes ,useNavigate} from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Editprofile from "./Editprofile";
 import Changepassword from "./Changepassword";
+import { useLayoutEffect } from "react";
 
 const Settings = () => {
+
+  const navigate = useNavigate();
+  useLayoutEffect(() => {
+    if (!sessionStorage.getItem("uid")) {
+      navigate("/");
+    }
+  });
+
   const CustomLink = styled(Link)`
     color: inherit;
     text-decoration: none;

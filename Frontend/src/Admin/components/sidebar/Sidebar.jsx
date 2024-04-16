@@ -12,15 +12,20 @@ import BadgeIcon from '@mui/icons-material/Badge';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { DarkModeContext } from "../../context/darkModeContext";
 import { useContext } from "react";
-import { Divider, Paper } from "@mui/material";
+import { Divider, Paper, styled } from "@mui/material";
+import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   const {dispatch}= useContext(DarkModeContext)
+  const CustomLink = styled(Link)`
+  color: inherit;
+  text-decoration: none;
+`;
   return (
     <Paper elevation={10}  square={false} sx={{width:"250px",backgroundColor:"#FAFAFA"}} >
     <div className="sidebar">
       <div className="top">
-        <span className="logo">agw</span>
+        <span className="logo">TravelConnect</span>
       </div>
       <hr />
       <div className="center">
@@ -33,12 +38,17 @@ const Sidebar = () => {
           <Divider/>
           <p className="title">Lists</p>
           <li>
+            <CustomLink to={"/admin/viewusers"}>
+
             <AccountCircleIcon className="icon"/>
             <span>Users</span>
+            </CustomLink>
           </li>
           <li>
+            <CustomLink to={"/admin/usercontents"}>
             <CollectionsIcon className="icon"/>
             <span>Contents</span>
+            </CustomLink>
           </li>
           <li>
             <LocalMallIcon className="icon"/>

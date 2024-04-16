@@ -1,12 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import "./featured.scss";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
+import axios from "axios";
 
 const Featured = () => {
+  const[activeUSerPercentage,setActiveUsers]=useState([])
+  const activeUsersPercentage = () => {
+    axios.get("http://localhost:5000/activeUsersPercentage").then((response) => {
+      setActiveUsers(response.data.activeUsersPercentage);
+    });
+  };
+  activeUsersPercentage();
   return (
     <div className="featured">
       Featured
@@ -16,7 +24,7 @@ const Featured = () => {
       </div>
       <div className="bottom">
         <div className="featuredChart">
-          <CircularProgressbar value={70} text={"70%"} strokeWidth={5} />
+          <CircularProgressbar value={activeUSerPercentage} text={Math.round(activeUSerPercentage)} strokeWidth={5} />
         </div>
         <p className="title">Total Sales Today</p>
         <p className="amount">420</p>

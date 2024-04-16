@@ -1,22 +1,43 @@
-import './widget.scss'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutline';
+import "./widget.scss";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import PersonOutlinedIcon from "@mui/icons-material/PersonOutline";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
+import axios from "axios";
+import { useState } from "react";
 
-const Widget = ({type}) => {
+const Widget = ({ type }) => {
+  const [totalUsers,setTotalUsers]=useState([])
+  const [totalPosts,setTotalPosts]=useState([])
+  const fetchTotalUsers = () => {
+    axios.get("http://localhost:5000/totalUsers").then((response) => {
+      setTotalUsers(response.data.totalUsers);
+    });
+  };
+  const fetchTotalPosts = () => {
+    axios.get("http://localhost:5000/totalPosts").then((response) => {
+      setTotalPosts(response.data.totalPosts);
+    });
+  };
+
+
+  fetchTotalUsers();
+  fetchTotalPosts();
+
+
   let data;
 
   //temporary
-  const amount = 100;
+  // const amount = 100;
   const diff = 20;
 
   switch (type) {
     case "user":
       data = {
-        title: "USERS",
+        title: "TOTAL  USERS",
         isMoney: false,
+        amount: totalUsers,
         link: "See all users",
         icon: (
           <PersonOutlinedIcon
@@ -31,8 +52,9 @@ const Widget = ({type}) => {
       break;
     case "order":
       data = {
-        title: "ORDERS",
+        title: "TOTAL POSTS",
         isMoney: false,
+        amount: totalPosts,
         link: "View all orders",
         icon: (
           <ShoppingCartOutlinedIcon
@@ -49,6 +71,7 @@ const Widget = ({type}) => {
       data = {
         title: "EARNINGS",
         isMoney: true,
+        amount: 70,
         link: "View net earnings",
         icon: (
           <MonetizationOnOutlinedIcon
@@ -62,6 +85,7 @@ const Widget = ({type}) => {
       data = {
         title: "BALANCE",
         isMoney: true,
+        amount: 90,
         link: "See details",
         icon: (
           <AccountBalanceWalletOutlinedIcon
@@ -83,7 +107,7 @@ const Widget = ({type}) => {
       <div className="left">
         <span className="title">{data.title}</span>
         <span className="counter">
-          {data.isMoney && "$"} {amount}
+          {data.isMoney && "$"} {data.amount}
         </span>
         <span className="link">{data.link}</span>
       </div>

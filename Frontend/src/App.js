@@ -7,6 +7,7 @@ import Feedback from "./User/Pages/Feedback";
 import Chat from "./User/Pages/Chat";
 import FollowList from "./User/Pages/FollowList";
 import Settings from "./User/Pages/Settings";
+import { Toaster } from "react-hot-toast";
 
 
 
@@ -24,6 +25,7 @@ function App() {
         <Route path="/chat" element={<Chat />} />
         <Route path="/followers" element={<FollowList />} />
       </Routes>
+      <Toaster/>
     </div>
   );
 }

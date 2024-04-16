@@ -18,6 +18,7 @@ import Comment from "../Pages/Comment";
 import CommentIcon from "@mui/icons-material/Comment";
 import axios from "axios";
 import Carousel from "react-material-ui-carousel";
+import moment from 'moment'
 
 const Post = ({ data, fetchPost }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -36,7 +37,7 @@ const Post = ({ data, fetchPost }) => {
   const post = data._id;
   const user = data.userId;
   const userPhoto = data.user.userPhoto;
-  console.log(userPhoto);
+ 
 
   const LikeStatus = () => {
     axios
@@ -102,6 +103,13 @@ const Post = ({ data, fetchPost }) => {
     countData();
   }, []);
 
+  const postDateTime = moment(data.postDateTime);
+
+const daysDifference = moment().diff(postDateTime, 'days');
+
+
+const postTime = moment.duration(daysDifference, 'days').humanize();
+
   return (
     <Card sx={{ margin: 5 }}>
       <CardHeader
@@ -149,7 +157,7 @@ const Post = ({ data, fetchPost }) => {
           ) : null
         }
         title={data.user.userFullName}
-        subheader="September 14, 2016"
+        subheader={(postTime)+' ago'}
       />
       <Carousel height={"500px"} stopAutoPlayOnHover={true} autoPlay={false}>
         {data.posts.map((post, key) => (

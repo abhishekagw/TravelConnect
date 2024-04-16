@@ -9,6 +9,7 @@ const multer = require("multer");
 const { ObjectId } = require("mongoose").Types;
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const { log } = require("console");
 
 const PATH = "./public/images";
 const upload = multer({
@@ -134,6 +135,70 @@ app.delete("/Admin/:id", async (req, res) => {
 
 app.get("/Admin", (req, res) => {
   res.send({ msg: "hello " });
+});
+
+
+//Total Users
+
+app.get("/totalUsers", async (req, res) => {
+  try {
+    
+    const totalUsers = await User.countDocuments();
+
+    res.send({ totalUsers }).status(200);
+  } catch (err) {
+    console.error("error", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+//Total Posts
+
+app.get("/totalPosts", async (req, res) => {
+  try {
+    
+    const totalPosts = await PostHead.countDocuments();
+
+    res.send({ totalPosts }).status(200);
+  } catch (err) {
+    console.error("error", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+//Active USers
+
+app.get("/activeUsersPercentage", async (req, res) => {
+  try {
+    // Count total users
+    const totalUsers = await User.countDocuments();
+
+    // Find users with more than 3 posts
+    const activeUsersQuery = [
+      {
+        $lookup: {
+          from: 'postheadschemas', // Assuming the name of your posts collection
+          localField: '_id',
+          foreignField: 'userId',
+          as: 'posts',
+        },
+      },
+      {
+        $match: {
+          $expr: { $gte: [{ $size: '$posts' }, 3] },
+        },
+      },
+    ];
+
+    const activeUsers = await User.aggregate(activeUsersQuery);
+    const activeUsersCount = activeUsers.length;
+
+    const activeUsersPercentage = (activeUsersCount / totalUsers) * 100;
+    res.json({ activeUsersPercentage });
+  } catch (err) {
+    console.error("Error", err);
+    res.status(500).json({ msg: "Server error" });
+  }
 });
 
 //DistrictSchema
@@ -480,6 +545,32 @@ app.put("/changepassword/:id", async (req, res) => {
   }
 });
 
+// User Change Profile Picture
+
+app.put(
+  "/UploadProfile/:id",
+  upload.fields([{ name: "ProfilePhoto", maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const Id = req.params.id;
+      var fileValue = JSON.parse(JSON.stringify(req.files));
+      var ProfilePhoto = `http://127.0.0.1:${port}/images/${fileValue.ProfilePhoto[0].filename}`;
+
+      await User.findByIdAndUpdate(
+        Id,
+        { userPhoto: ProfilePhoto },
+        { new: true }
+      );
+
+      res.json({ message: "Profile Changed Succesfully" });
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Server Error");
+    }
+  }
+);
+
+
 //PostsSchema
 
 const postSchemaStructure = new mongoose.Schema({
@@ -802,23 +893,23 @@ app.get("/postsSingleUser/:id", async (req, res) => {
 //   }
 // });
 
-// //Post Delete
+//Post Delete
 
-// app.delete("/posts/:id", async (req, res) => {
-//   try {
-//     const postId = req.params.id;
-//     const deletedPost = await Post.findByIdAndDelete(postId);
-//     await Comment.deleteMany({ postId });
-//     if (!deletedPost) {
-//       return res.status(404).json({ message: "Post not found" });
-//     } else {
-//       res.json({ message: "Post deleted successfully", deletedPost });
-//     }
-//   } catch (err) {
-//     console.error("Error Deleting Post", err);
-//     res.status(500).json({ msg: "Server Error" });
-//   }
-// });
+app.delete("/posts/:id", async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const deletedPost = await PostHead.findByIdAndDelete(postId);
+    // await Comment.deleteMany({ postId });
+    if (!deletedPost) {
+      return res.status(404).json({ message: "Post not found" });
+    } else {
+      res.json({ message: "Post deleted successfully", deletedPost });
+    }
+  } catch (err) {
+    console.error("Error Deleting Post", err);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
 
 //commentSchema
 
@@ -1560,7 +1651,7 @@ app.get("/FollowStatus/:uid/:id", async (req, res) => {
 app.put("/FollowStatus/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const {status} = req.body;
+    const { status } = req.body;
     const followStatus = await Followlist.findByIdAndUpdate(
       id,
       { followStatus: status },
@@ -1577,7 +1668,7 @@ app.put("/FollowStatus/:id", async (req, res) => {
 app.put("/Followagain/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const {status,userFrom,userTo} = req.body;
+    const { status, userFrom, userTo } = req.body;
     const followStatus = await Followlist.findByIdAndUpdate(
       id,
       { followStatus: status, userFrom: userFrom, userTo: userTo },
@@ -1588,8 +1679,6 @@ app.put("/Followagain/:id", async (req, res) => {
     console.error("Error", err);
   }
 });
-
-
 
 //Follow Count
 
@@ -1607,6 +1696,7 @@ app.get("/followcount/:id", async (req, res) => {
 
 app.post("/login", async (req, res) => {
   try {
+    console.log("hi");
     const { email, password } = req.body;
     const user = await User.findOne({
       userEmail: email,
@@ -1627,6 +1717,10 @@ app.post("/login", async (req, res) => {
         id: admin._id,
         login: "Admin",
       });
+    }
+    if (!user && !admin) {
+      console.log("wrong" + email);
+      return res.json({ error: "Invalid Credentials" });
     }
   } catch (err) {
     console.error("Error", err);

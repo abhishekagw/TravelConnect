@@ -1,83 +1,60 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Divider,
-  IconButton,
-  Typography,
-  styled,
-} from "@mui/material";
+import { Avatar, Box, Button, Divider, Typography } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import Post from "../components/Post";
-import { CloudUpload } from "@mui/icons-material";
+import { Link, useParams } from "react-router-dom";
+import Post from "../../../User/components/Post";
 
-const MyProfile = () => {
-  const [data, setData] = useState("");
-  const [tpost, setTpost] = useState("");
-  const [posts, setPOst] = useState([]);
+const ViewUserProfile = () => {
+    const [data, setData] = useState("");
+    const [tpost, setTpost] = useState("");
+    const [posts, setPOst] = useState([]);
+    const [follow, setFollow] = useState("0");
+    const [followlist, setfollowlist] = useState([]);
+    const [followCount, setFollowCount] = useState(0);
+    const [message, setMessage] = useState([]);
+    const uid = sessionStorage.getItem("uid");
 
-  const VisuallyHiddenInput = styled("input")({
-    clip: "rect(0 0 0 0)",
-    clipPath: "inset(50%)",
-    height: 1,
-    overflow: "hidden",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    whiteSpace: "nowrap",
-    width: 1,
-  });
-
-  const uid = sessionStorage.getItem("uid");
-
+  
+    const { id } = useParams();
   const fetchData = () => {
-    axios.get("http://localhost:5000/user/" + uid).then((res) => {
+    axios.get("http://localhost:5000/user/" + id).then((res) => {
       console.log(res.data);
       setData(res.data);
     });
-    axios.get("http://localhost:5000/user/totalposts/" + uid).then((res) => {
+    axios.get("http://localhost:5000/user/totalposts/" + id).then((res) => {
       console.log(res.data);
       setTpost(res.data.totalPosts);
     });
   };
 
   const fetchPost = () => {
-    axios.get("http://localhost:5000/postsSingleUser/" + uid).then((res) => {
+    axios.get("http://localhost:5000/postsSingleUser/" + id).then((res) => {
       console.log(res.data);
       setPOst(res.data);
     });
   };
 
-  const handlePhotoChange = (event) => {
-    const file = event.target.files[0];
-    const frm = new FormData();
-    frm.append("ProfilePhoto", file);
-
-    axios
-      .put(`http://localhost:5000/UploadProfile/${uid}`, frm)
-      .then((response) => {
-        console.log(response.data);
-        fetchData();
-      });
+  const countFollow = () => {
+    axios.get("http://localhost:5000/followcount/" + id).then((response) => {
+      setFollowCount(response.data.followcount);
+    });
   };
 
-  useEffect(() => {
-    fetchData();
-    fetchPost();
-  }, []);
+  useEffect(()=>{
+    fetchData()
+    fetchPost()
+  },[])
   return (
-    <div>
+    <div style={{padding:'20px'}}>
       <Box padding={"60px"}>
         <Box display={"flex"}>
           <Box>
             {/* <Avatar
-              sx={{ width: "150px", height: "150px" }}
-              alt="Remy Sharp"
-              src={"https://material-ui.com/static/images/avatar/1.jpg"}
-            ></Avatar> */}
+            sx={{ width: "150px", height: "150px" }}
+            alt="Remy Sharp"
+            src={"https://material-ui.com/static/images/avatar/1.jpg"}
+          ></Avatar> */}
             {data.userPhoto ? (
               <Avatar
                 sx={{ width: "150px", height: "150px" }}
@@ -97,32 +74,19 @@ const MyProfile = () => {
               <Typography variant="h5" fontWeight={"bold"}>
                 @ {data.userName}
               </Typography>
-              <Button sx={{ marginLeft: "30px" }} variant="contained">
-                <Link
-                  to="/settings/editprofile"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  Edit Profile
-                </Link>
-              </Button>
-              <Button
+              {/* <Button
                 sx={{ marginLeft: "30px" }}
-                component="label"
-                role={undefined}
                 variant="contained"
-                startIcon={<CloudUpload />}
-              >
-                Change Profile{" "}
-                <VisuallyHiddenInput type="file" onChange={handlePhotoChange} />
+               >
               </Button>
-              <Link
-                to="/settings"
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <SettingsIcon
-                  sx={{ paddingLeft: "25px", width: "50px", height: "30px" }}
-                />
-              </Link>
+              <Link to={"/user/chats/" + message}>
+                <Button sx={{ marginLeft: "30px" }} variant="contained">
+                  Message
+                </Button>
+              </Link> */}
+              <SettingsIcon
+                sx={{ paddingLeft: "25px", width: "50px", height: "30px" }}
+              />
             </Box>
             <Box display={"flex"} paddingTop={"30px"}>
               <Typography variant="h6">
@@ -133,7 +97,11 @@ const MyProfile = () => {
                 Posts
               </Typography>
               <Typography variant="h6" sx={{ paddingLeft: "30px" }}>
-                <span style={{ fontWeight: "bold" }}> 1050 </span>Followers
+                <span style={{ fontWeight: "bold" }}>
+                  {" "}
+                  {followCount ? followCount : 0}{" "}
+                </span>
+                Followers
               </Typography>
               <Typography variant="h6" sx={{ paddingLeft: "30px" }}>
                 <span style={{ fontWeight: "bold" }}> 151 </span>Following
@@ -244,4 +212,4 @@ const MyProfile = () => {
   );
 };
 
-export default MyProfile;
+export default ViewUserProfile;
